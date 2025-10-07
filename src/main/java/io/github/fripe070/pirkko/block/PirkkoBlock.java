@@ -34,7 +34,7 @@ import java.util.Locale;
 
 
 // TODO: Allow waterlogging
-public class PirkkoBlock extends WallMountedBlock implements PolymerTexturedBlock, BlockWithElementHolder {
+public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHolder, PolymerTexturedBlock {
     public static final MapCodec<PirkkoBlock> CODEC = createCodec(PirkkoBlock::new);
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
     // TODO: Support more granular rotation
@@ -83,7 +83,6 @@ public class PirkkoBlock extends WallMountedBlock implements PolymerTexturedBloc
 
         element.setTransformation(new Matrix4f()
             .rotate(initialBlockState.get(FACING).getRotationQuaternion())
-            .rotateZ((float) Math.toRadians(180))
             .rotateX((float) Math.toRadians(switch (initialBlockState.get(FACE)) {
                 case FLOOR -> - 90;
                 case CEILING -> 90;
