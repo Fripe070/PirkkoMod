@@ -26,6 +26,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldView;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import xyz.nucleoid.packettweaker.PacketContext;
@@ -83,6 +84,7 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
 
         element.setTransformation(new Matrix4f()
             .rotate(initialBlockState.get(FACING).getRotationQuaternion())
+            .rotateZ(initialBlockState.get(FACE) == BlockFace.FLOOR ? (float)Math.toRadians(180) : 0f)
             .rotateX((float) Math.toRadians(switch (initialBlockState.get(FACE)) {
                 case FLOOR -> - 90;
                 case CEILING -> 90;
@@ -92,5 +94,10 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
             .scale(0.5f)
         );
         return holder;
+    }
+
+    @Override
+    protected boolean canPlaceAt(BlockState state, WorldView world, BlockPos pos) {
+        return true;
     }
 }
