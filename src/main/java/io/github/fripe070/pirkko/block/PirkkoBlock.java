@@ -14,11 +14,13 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.WallMountedBlock;
 import net.minecraft.block.Waterloggable;
 import net.minecraft.block.enums.BlockFace;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemDisplayContext;
 import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.state.StateManager;
@@ -30,6 +32,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
 import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
@@ -48,6 +51,8 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
     // TODO: Support more granular rotation
 //    public static final IntProperty ROTATION = Properties.ROTATION;
 
+    protected final Random random;
+
     @Override
     public MapCodec<PirkkoBlock> getCodec() {
         return CODEC;
@@ -55,6 +60,7 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
 
     public PirkkoBlock(AbstractBlock.Settings settings) {
         super(settings);
+        this.random = Random.create();
         this.setDefaultState(this.stateManager.getDefaultState()
             .with(FACING, Direction.NORTH)
             .with(FACE, BlockFace.WALL)
@@ -62,10 +68,24 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
         );
     }
 
+    public void bounce(World world, BlockPos pos) {
+        world.playSound(null, pos, PIRKKO_SOUND, SoundCategory.BLOCKS, 0.8f, 0.9f + this.random.nextFloat() * 0.4f);
+    }
+
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        world.playSound(null, pos, PIRKKO_SOUND, SoundCategory.BLOCKS, 1, 1.3f);
+        this.bounce(world, pos);
         return ActionResult.SUCCESS;
+    }
+    @Override
+    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
+        super.onPlaced(world, pos, state, placer, itemStack);
+        this.bounce(world, pos);
+    }
+    @Override
+    public void onBroken(WorldAccess world, BlockPos pos, BlockState state) {
+        super.onBroken(world, pos, state);
+        this.bounce((World) world, pos);
     }
 
     @Override
@@ -104,18 +124,17 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
     public @Nullable ElementHolder createElementHolder(ServerWorld world, BlockPos pos, BlockState initialBlockState) {
         var holder = new ElementHolder();
         ItemDisplayElement element = holder.addElement(new ItemDisplayElement(Pirkko.PIRKKO_BLOCK.asItem()));
-        element.setModelTransformation(ItemDisplayContext.FIXED);
+        element.setModelTransformation(ItemDisplayContext.NONE);
 
         element.setTransformation(new Matrix4f()
             .rotate(initialBlockState.get(FACING).getRotationQuaternion())
-            .rotateZ(initialBlockState.get(FACE) == BlockFace.FLOOR ? (float)Math.toRadians(180) : 0f)
+            .rotateZ(initialBlockState.get(FACE) == BlockFace.CEILING ? (float)Math.toRadians(180) : 0f)
+            .rotateY(initialBlockState.get(FACE) == BlockFace.WALL ? (float)Math.toRadians(180) : 0f)
             .rotateX((float) Math.toRadians(switch (initialBlockState.get(FACE)) {
                 case FLOOR -> - 90;
                 case CEILING -> 90;
                 case WALL -> 0;
             }))
-            .translate(0.0f, - 0.25f, 0.0f)
-            .scale(0.5f)
         );
         return holder;
     }

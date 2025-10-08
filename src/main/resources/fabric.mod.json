@@ -13,7 +13,8 @@
 
   "environment": "server",
   "entrypoints": {
-    "main": ["io.github.fripe070.pirkko.Pirkko"]
+    "main": ["io.github.fripe070.pirkko.Pirkko"],
+    "fabric-datagen": ["io.github.fripe070.pirkko.datagen.DataGen"]
   },
 
   "mixins": [

@@ -9,9 +9,12 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
+import net.minecraft.block.MapColor;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
+import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -34,12 +37,16 @@ public class Pirkko implements ModInitializer {
     public static final Block PIRKKO_BLOCK = registerBlock(
         "pirkko",
         PirkkoBlock::new,
-        AbstractBlock.Settings.create(),
+        AbstractBlock.Settings.create()
+            .mapColor(MapColor.BRIGHT_RED)
+            .breakInstantly()
+            .nonOpaque(),
         true,
         new Item.Settings()
             .maxCount(16)
             .fireproof()
             .rarity(Rarity.EPIC)
+            .equippable(EquipmentSlot.HEAD)
     );
     public static final SoundEvent PIRKKO_SOUND = registerSoundEvent("pirkko", SoundEvents.ENTITY_COD_FLOP);
     public static final StatusEffect PIRKKO_POWER = new PirkkoPowerEffect();
