@@ -21,7 +21,6 @@ import net.minecraft.item.ItemDisplayContext;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.Properties;
@@ -38,6 +37,8 @@ import org.joml.Matrix4f;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.Locale;
+
+import static io.github.fripe070.pirkko.Pirkko.PIRKKO_SOUND;
 
 
 // TODO: Allow waterlogging
@@ -63,7 +64,7 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        world.playSound(null, pos, SoundEvents.ENTITY_COD_FLOP, SoundCategory.BLOCKS, 3.0f, 1.0f);
+        world.playSound(null, pos, PIRKKO_SOUND, SoundCategory.BLOCKS, 1, 1.3f);
         return ActionResult.SUCCESS;
     }
 
