@@ -14,7 +14,6 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
-import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -43,7 +42,7 @@ public class Pirkko implements ModInitializer {
             .nonOpaque(),
         true,
         new Item.Settings()
-            .maxCount(16)
+            .maxCount(65)
             .fireproof()
             .rarity(Rarity.EPIC)
             .equippable(EquipmentSlot.HEAD)

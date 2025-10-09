@@ -8,5 +8,6 @@ public class DataGen implements DataGeneratorEntrypoint {
     public void onInitializeDataGenerator(FabricDataGenerator generator) {
         FabricDataGenerator.Pack pack = generator.createPack();
         pack.addProvider(LootTables::new);
+        pack.addProvider(RecipesProvider::new);
     }
 }
