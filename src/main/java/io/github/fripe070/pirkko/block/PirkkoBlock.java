@@ -6,7 +6,9 @@ import eu.pb4.polymer.blocks.api.PolymerBlockResourceUtils;
 import eu.pb4.polymer.blocks.api.PolymerTexturedBlock;
 import eu.pb4.polymer.virtualentity.api.BlockWithElementHolder;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
+import eu.pb4.polymer.virtualentity.api.attachment.BlockBoundAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
+import eu.pb4.polymer.virtualentity.api.elements.TextDisplayElement;
 import io.github.fripe070.pirkko.Pirkko;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -15,6 +17,7 @@ import net.minecraft.block.WallMountedBlock;
 import net.minecraft.block.Waterloggable;
 import net.minecraft.block.enums.BlockFace;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
@@ -25,8 +28,12 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.EnumProperty;
+import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.DyeColor;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -37,6 +44,7 @@ import net.minecraft.world.WorldView;
 import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.Locale;
@@ -50,6 +58,9 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
     // TODO: Support more granular rotation
 //    public static final IntProperty ROTATION = Properties.ROTATION;
+
+    protected static final int SQUISH_TICKS = 4;
+    public static final IntProperty SQUISH_TICK = IntProperty.of("squish_tick", 0, SQUISH_TICKS);
 
     protected final Random random;
 
@@ -65,33 +76,51 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
             .with(FACING, Direction.NORTH)
             .with(FACE, BlockFace.WALL)
             .with(WATERLOGGED, false)
+            .with(SQUISH_TICK, 0)
         );
     }
 
-    public void bounce(World world, BlockPos pos) {
+    public void playPirkko(World world, BlockPos pos) {
         world.playSound(null, pos, PIRKKO_SOUND, SoundCategory.BLOCKS, 0.8f, 0.9f + this.random.nextFloat() * 0.4f);
     }
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        this.bounce(world, pos);
+        this.playPirkko(world, pos);
+        world.setBlockState(pos, state.with(SQUISH_TICK, SQUISH_TICKS));
+        world.scheduleBlockTick(pos, this, 1);
         return ActionResult.SUCCESS;
     }
+
+    @Override
+    protected void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+        super.scheduledTick(state, world, pos, random);
+        if (state.get(SQUISH_TICK) > 0) {
+            world.setBlockState(pos, state.with(SQUISH_TICK, state.get(SQUISH_TICK) - 1));
+            world.scheduleBlockTick(pos, this, 1);
+        }
+    }
+
     @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
         super.onPlaced(world, pos, state, placer, itemStack);
-        this.bounce(world, pos);
+        this.playPirkko(world, pos);
     }
     @Override
     public void onBroken(WorldAccess world, BlockPos pos, BlockState state) {
         super.onBroken(world, pos, state);
-        this.bounce((World) world, pos);
+        this.playPirkko((World) world, pos);
     }
 
     @Override
     public @Nullable BlockState getPlacementState(ItemPlacementContext ctx) {
         return super.getPlacementState(ctx)
             .with(WATERLOGGED, ctx.getWorld().getFluidState(ctx.getBlockPos()).getFluid() == Fluids.WATER);
+    }
+
+    @Override
+    protected boolean canPlaceAt(BlockState state, WorldView world, BlockPos pos) {
+        return true;
     }
 
     @Override
@@ -107,7 +136,7 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(FACING, FACE, WATERLOGGED);
+        builder.add(FACING, FACE, WATERLOGGED, SQUISH_TICK);
     }
 
     @Override
@@ -119,28 +148,67 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
         }) + (state.get(WATERLOGGED) ? "_WATERLOGGED" : "")));
     }
 
-    @SuppressWarnings("removal")
     @Override
     public @Nullable ElementHolder createElementHolder(ServerWorld world, BlockPos pos, BlockState initialBlockState) {
-        var holder = new ElementHolder();
-        ItemDisplayElement element = holder.addElement(new ItemDisplayElement(Pirkko.PIRKKO_BLOCK.asItem()));
-        element.setModelTransformation(ItemDisplayContext.NONE);
-
-        element.setTransformation(new Matrix4f()
-            .rotate(initialBlockState.get(FACING).getRotationQuaternion())
-            .rotateZ(initialBlockState.get(FACE) == BlockFace.CEILING ? (float)Math.toRadians(180) : 0f)
-            .rotateY(initialBlockState.get(FACE) == BlockFace.WALL ? (float)Math.toRadians(180) : 0f)
-            .rotateX((float) Math.toRadians(switch (initialBlockState.get(FACE)) {
-                case FLOOR -> - 90;
-                case CEILING -> 90;
-                case WALL -> 0;
-            }))
-        );
-        return holder;
+        return new PirkkoHolder(world, pos, initialBlockState);
     }
 
     @Override
-    protected boolean canPlaceAt(BlockState state, WorldView world, BlockPos pos) {
+    public boolean tickElementHolder(ServerWorld world, BlockPos pos, BlockState initialBlockState) {
         return true;
+    }
+
+    @SuppressWarnings("removal")
+    static class PirkkoHolder extends ElementHolder {
+        private final ItemDisplayElement display;
+        private final TextDisplayElement debugText;
+        private final Matrix4f baseTransform;
+
+        public PirkkoHolder(ServerWorld world, BlockPos pos, BlockState initialBlockState) {
+            this.baseTransform = new Matrix4f()
+                .rotate(initialBlockState.get(FACING).getRotationQuaternion())
+                .rotateZ(initialBlockState.get(FACE) == BlockFace.CEILING ? (float) Math.toRadians(180) : 0f)
+                .rotateY(initialBlockState.get(FACE) == BlockFace.WALL ? (float) Math.toRadians(180) : 0f)
+                .rotateX((float) Math.toRadians(switch (initialBlockState.get(FACE)) {
+                    case FLOOR -> - 90;
+                    case CEILING -> 90;
+                    case WALL -> 0;
+                }));
+
+            this.display = addElement(new ItemDisplayElement(Pirkko.PIRKKO_BLOCK.asItem()));
+            this.display.setModelTransformation(ItemDisplayContext.NONE);
+            this.display.setTransformation(this.baseTransform);
+            this.display.setInterpolationDuration(1);
+
+            this.debugText = addElement(new TextDisplayElement(Text.of("Debug")));
+            this.debugText.setBillboardMode(DisplayEntity.BillboardMode.CENTER);
+            this.debugText.setScale(new Vector3f(0.5f));
+        }
+
+        @Override
+        protected void onTick() {
+            var attachment = this.getAttachment();
+            if (attachment == null) throw new IllegalStateException("Attachment is null");
+            var squishTick = ((BlockBoundAttachment)attachment).getBlockState().get(SQUISH_TICK);
+
+            if (squishTick > 0) {
+                float squishFactor = squishTick / (float) SQUISH_TICKS;
+                Vector3f squishScale = new Vector3f(
+                    1f + 0.2f * squishFactor,
+                    1f - 0.3f * squishFactor,
+                    1f + 0.2f * squishFactor
+                );
+                this.display.setTransformation(new Matrix4f(this.baseTransform)
+                    .translate(0, -0.5f, 0)
+                    .scale(squishScale)
+                    .translate(0, 0.5f, 0)
+                );
+                this.display.startInterpolation();
+            } else {
+                this.display.setTransformation(this.baseTransform);
+            }
+
+            this.debugText.setText(Text.of("Squish: %d/%d".formatted(squishTick, SQUISH_TICKS)));
+        }
     }
 }
