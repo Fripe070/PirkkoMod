@@ -9,7 +9,6 @@ import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.BlockBoundAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import eu.pb4.polymer.virtualentity.api.elements.TextDisplayElement;
-import io.github.fripe070.pirkko.Pirkko;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -21,6 +20,7 @@ import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemDisplayContext;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
@@ -150,7 +150,7 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
 
     @Override
     public @Nullable ElementHolder createElementHolder(ServerWorld world, BlockPos pos, BlockState initialBlockState) {
-        return new PirkkoHolder(world, pos, initialBlockState);
+        return new PirkkoHolder(initialBlockState, this.asItem());
     }
 
     @Override
@@ -164,7 +164,7 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
         private final TextDisplayElement debugText;
         private final Matrix4f baseTransform;
 
-        public PirkkoHolder(ServerWorld world, BlockPos pos, BlockState initialBlockState) {
+        public PirkkoHolder(BlockState initialBlockState, ItemStack itemStack) {
             this.baseTransform = new Matrix4f()
                 .rotate(initialBlockState.get(FACING).getRotationQuaternion())
                 .rotateZ(initialBlockState.get(FACE) == BlockFace.CEILING ? (float) Math.toRadians(180) : 0f)
@@ -175,7 +175,7 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
                     case WALL -> 0;
                 }));
 
-            this.display = addElement(new ItemDisplayElement(Pirkko.PIRKKO_BLOCK.asItem()));
+            this.display = addElement(new ItemDisplayElement(itemStack));
             this.display.setModelTransformation(ItemDisplayContext.NONE);
             this.display.setTransformation(this.baseTransform);
             this.display.setInterpolationDuration(1);
@@ -183,6 +183,9 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
             this.debugText = addElement(new TextDisplayElement(Text.of("Debug")));
             this.debugText.setBillboardMode(DisplayEntity.BillboardMode.CENTER);
             this.debugText.setScale(new Vector3f(0.5f));
+        }
+        public PirkkoHolder(BlockState initialBlockState, Item item) {
+            this(initialBlockState, item.getDefaultStack());
         }
 
         @Override

@@ -1,65 +1,110 @@
 package io.github.fripe070.pirkko;
 
 import eu.pb4.polymer.core.api.item.PolymerBlockItem;
+import eu.pb4.polymer.core.api.item.SimplePolymerItem;
 import eu.pb4.polymer.core.api.other.PolymerSoundEvent;
 import eu.pb4.polymer.rsm.api.RegistrySyncUtils;
 import io.github.fripe070.pirkko.block.PirkkoBlock;
 import io.github.fripe070.pirkko.effect.PirkkoPowerEffect;
+import io.github.fripe070.pirkko.item.PirkkoItem;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
 import net.minecraft.block.MapColor;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
+import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.minecraft.util.Rarity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.stream.Stream;
 
 public class Pirkko implements ModInitializer {
     public static final String MOD_ID = "pirkko";
     public static final Logger LOGGER = LoggerFactory.getLogger("pirkko");
 
-    public static final Block PIRKKO_BLOCK = registerBlock(
-        "pirkko",
-        PirkkoBlock::new,
-        AbstractBlock.Settings.create()
-            .mapColor(MapColor.BRIGHT_RED)
-            .breakInstantly()
-            .nonOpaque(),
-        true,
-        new Item.Settings()
-            .maxCount(65)
-            .fireproof()
-            .rarity(Rarity.EPIC)
-            .equippable(EquipmentSlot.HEAD)
-    );
+    public static final PirkkoBlock PIRKKO_BLOCK = registerPirkkoBlock("pirkko");
+    public static final Item DEFAULT_PIRKKO_ITEM = registerPirkkoItem("pirkko", PIRKKO_BLOCK);
+
+    public static final String[] PIRKKO_KINDS = Stream.concat(
+        Arrays.stream(new String[]{"phoz", "ghost", "konglig", "laserviolett", "cerise"}),
+        Arrays.stream(DyeColor.values()).map((color) -> "color/" + color.getId())
+    ).toArray(String[]::new);
+
     public static final SoundEvent PIRKKO_SOUND = registerSoundEvent("pirkko", SoundEvents.ENTITY_COD_FLOP);
     public static final StatusEffect PIRKKO_POWER = new PirkkoPowerEffect();
 
     @Override
     public void onInitialize() {
         PolymerResourcePackUtils.addModAssets(MOD_ID);
-
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register((itemGroup) -> {
-            itemGroup.add(PIRKKO_BLOCK.asItem());
-        });
-        Registry.register(Registries.STATUS_EFFECT, Identifier.of(MOD_ID, "pirkko_power"), PIRKKO_POWER);
-
         PolymerResourcePackUtils.markAsRequired();
+
+        Registry.register(Registries.STATUS_EFFECT, Identifier.of(MOD_ID, "pirkko_power"), PIRKKO_POWER);
+    }
+
+//    public static Item getPirkkoByColor(DyeColor color) {
+//        return PIRKKO_ITEMS.get(color.getIndex() + 1); // +1 because default pirkko is at index 0
+//    }
+
+    private static List<Item> registerAllPirkkoItems() {
+        List<Item> blocks = new ArrayList<>();
+        blocks.add(DEFAULT_PIRKKO_ITEM);
+        for (DyeColor color : DyeColor.values()) {
+            blocks.add(registerPirkkoItem(color.getId() + "_pirkko", PIRKKO_BLOCK));
+        }
+        return blocks;
+    }
+
+    private static PirkkoBlock registerPirkkoBlock(String name) {
+        var registryKey = Identifier.of(MOD_ID, name);
+        var block = new PirkkoBlock(AbstractBlock.Settings.create()
+            .mapColor(MapColor.BRIGHT_RED)
+            .breakInstantly()
+            .nonOpaque()
+            .registryKey(RegistryKey.of(RegistryKeys.BLOCK, registryKey)));
+        Registry.register(Registries.BLOCK, registryKey, block);
+        return block;
+    }
+    private static Item registerPirkkoItem(String name, PirkkoBlock block) {
+        var registryKey = Identifier.of(MOD_ID, name);
+//        var item = new PolymerBlockItem(block, new Item.Settings()
+        var item = new PirkkoItem(block, new Item.Settings()
+            .maxCount(65)
+            .fireproof()
+            .rarity(Rarity.EPIC)
+            .equippable(EquipmentSlot.HEAD)
+            .registryKey(RegistryKey.of(RegistryKeys.ITEM, registryKey))
+//            .useBlockPrefixedTranslationKey()
+        );
+        Registry.register(Registries.ITEM, Identifier.of(MOD_ID, name), item);
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> {
+            entries.add(item); // Default  version
+            // Add all the variations
+            for (String kind : Pirkko.PIRKKO_KINDS) {
+                var stack = item.getDefaultStack();
+                stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(List.of(), List.of(), List.of(kind), List.of()));
+                entries.add(stack);
+            }
+        });
+        return item;
     }
 
     private static SoundEvent registerSoundEvent(String name, SoundEvent soundEvent) {
@@ -68,43 +113,5 @@ public class Pirkko implements ModInitializer {
         PolymerSoundEvent.registerOverlay(event, soundEvent);
         RegistrySyncUtils.setServerEntry(Registries.SOUND_EVENT, event);
         return event;
-    }
-
-    public static Item registerItem(String name, Function<Item.Settings, Item> itemFactory, Item.Settings settings) {
-        // Create the item key.
-        RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, name));
-        // Create the item instance.
-        Item item = itemFactory.apply(settings.registryKey(itemKey));
-        // Register the item.
-        Registry.register(Registries.ITEM, itemKey, item);
-        return item;
-    }
-
-    private static Block registerBlock(String name, Function<AbstractBlock.Settings, Block> blockFactory, AbstractBlock.Settings blockSettings, boolean shouldRegisterItem, Item.Settings itemSettings) {
-        // Create a registry key for the block
-        RegistryKey<Block> blockKey = RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(MOD_ID, name));
-        // Create the block instance
-        Block block = blockFactory.apply(blockSettings.registryKey(blockKey));
-        // Sometimes, you may not want to register an item for the block.
-        // Eg: if it's a technical block like `minecraft:moving_piston` or `minecraft:end_gateway`
-//        if (shouldRegisterItem) {
-//            // Items need to be registered with a different type of registry key, but the ID
-//            // can be the same.
-//            RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, blockKey.getValue());
-//            PolymerBlockItem blockItem = new PolymerBlockItem(block, new Item.Settings().registryKey(itemKey).useBlockPrefixedTranslationKey());
-//            Registry.register(Registries.ITEM, itemKey, blockItem);
-//        }
-        if (shouldRegisterItem) registerBlockItem(name, block, itemSettings);
-
-        return Registry.register(Registries.BLOCK, blockKey, block);
-    }
-
-    private static PolymerBlockItem registerBlockItem(String name, Block block, Item.Settings settings) {
-        // Create a registry key for the item
-        RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, name));
-        // Create the item instance
-        PolymerBlockItem blockItem = new PolymerBlockItem(block, settings.registryKey(itemKey).useBlockPrefixedTranslationKey());
-        // Register the item
-        return Registry.register(Registries.ITEM, itemKey, blockItem);
     }
 }

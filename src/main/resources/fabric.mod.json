@@ -8,18 +8,16 @@
   "authors": [],
   "contact": {},
 
-  "license": "AGPL-3.0",
+  "license": "Unlicense",
   "icon": "assets/pirkko/icon.png",
 
-  "environment": "server",
+  "environment": "*",
   "entrypoints": {
     "main": ["io.github.fripe070.pirkko.Pirkko"],
     "fabric-datagen": ["io.github.fripe070.pirkko.datagen.DataGen"]
   },
 
-  "mixins": [
-    "pirkko.mixins.json"
-  ],
+  "mixins": ["pirkko.mixins.json"],
 
   "depends": {
     "fabricloader": ">=${loader_version}",
