@@ -1,0 +1,32 @@
+{
+  "block.pirkko.pirkko": "goop",
+  "effect.pirkko.pirkko_power": "Goopy power",
+
+  "sound.pirkko.pirkko": "Plasik goop goops",
+
+  "item.pirkko.pirkko": "goop",
+
+  "item.pirkko.standard_pirkko": "goop",
+  "item.pirkko.cerise_pirkko": "veri pink",
+  "item.pirkko.ghost_pirkko": "spoopy goop",
+  "item.pirkko.konglig_pirkko": "ni Pirkko myself",
+  "item.pirkko.laserviolett_pirkko": "purfekt Pirkko",
+  "item.pirkko.phoz_pirkko": "meanie goop",
+
+  "item.pirkko.white_pirkko": "plastik goop",
+  "item.pirkko.orange_pirkko": "3d printer goop",
+  "item.pirkko.magenta_pirkko": "plasty rasp",
+  "item.pirkko.light_blue_pirkko": "bluish goop",
+  "item.pirkko.yellow_pirkko": "yelo plastik",
+  "item.pirkko.lime_pirkko": "lime goop",
+  "item.pirkko.pink_pirkko": "plasty pink",
+  "item.pirkko.gray_pirkko": "gray goop",
+  "item.pirkko.light_gray_pirkko": "lite grai goop",
+  "item.pirkko.cyan_pirkko": "bluu goop",
+  "item.pirkko.purple_pirkko": "purlp goop",
+  "item.pirkko.blue_pirkko": "bluuer goop",
+  "item.pirkko.brown_pirkko": "braun plastgoop",
+  "item.pirkko.green_pirkko": "grein goop",
+  "item.pirkko.red_pirkko": "red goop",
+  "item.pirkko.black_pirkko": "blackish goop"
+}

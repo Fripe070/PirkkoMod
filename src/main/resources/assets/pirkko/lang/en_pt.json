@@ -1,16 +1,16 @@
 {
   "block.pirkko.pirkko": "Pirkko",
-  "effect.pirkko.pirkko_power": "Pirkko Power",
+  "effect.pirkko.pirkko_power": "Pirkko",
 
   "sound.pirkko.pirkko": "Pirkko pirkkos",
 
   "item.pirkko.pirkko": "Pirkko",
 
   "item.pirkko.standard_pirkko": "Pirkko",
-  "item.pirkko.cerise_pirkko": "Cerise Pirkko",
-  "item.pirkko.ghost_pirkko": "Ghost Pirkko",
-  "item.pirkko.konglig_pirkko": "Konglig Pirkko",
-  "item.pirkko.laserviolett_pirkko": "Laserviolet Pirkko",
+  "item.pirkko.cerise_pirkko": "Pink Pirkko",
+  "item.pirkko.ghost_pirkko": "Ghoul Pirkko",
+  "item.pirkko.konglig_pirkko": "Regal Pirkko",
+  "item.pirkko.laserviolett_pirkko": "Cutlass beam o' violet Pirkko",
   "item.pirkko.phoz_pirkko": "PHÖZ PIRKKO",
 
   "item.pirkko.white_pirkko": "White Pirkko",
@@ -22,11 +22,11 @@
   "item.pirkko.pink_pirkko": "Pink Pirkko",
   "item.pirkko.gray_pirkko": "Gray Pirkko",
   "item.pirkko.light_gray_pirkko": "Light Gray Pirkko",
-  "item.pirkko.cyan_pirkko": "Cyan Pirkko",
+  "item.pirkko.cyan_pirkko": "Ocean Blue Pirkko",
   "item.pirkko.purple_pirkko": "Purple Pirkko",
   "item.pirkko.blue_pirkko": "Blue Pirkko",
   "item.pirkko.brown_pirkko": "Brown Pirkko",
   "item.pirkko.green_pirkko": "Green Pirkko",
-  "item.pirkko.red_pirkko": "Red Pirkko",
+  "item.pirkko.red_pirkko": "Scarlet Pirkko",
   "item.pirkko.black_pirkko": "Black Pirkko"
 }
