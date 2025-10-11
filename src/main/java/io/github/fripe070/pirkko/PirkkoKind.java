@@ -3,7 +3,6 @@ package io.github.fripe070.pirkko;
 import net.minecraft.util.StringIdentifiable;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.stream.Stream;
 
 public enum PirkkoKind implements StringIdentifiable {
