@@ -9,12 +9,9 @@ import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.BlockBoundAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import eu.pb4.polymer.virtualentity.api.elements.TextDisplayElement;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.WallMountedBlock;
-import net.minecraft.block.Waterloggable;
+import net.minecraft.block.*;
 import net.minecraft.block.enums.BlockFace;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -28,12 +25,10 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.DyeColor;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -41,6 +36,9 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
+import net.minecraft.world.block.WireOrientation;
+import net.minecraft.world.event.GameEvent;
+import net.minecraft.world.event.Vibrations;
 import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -61,6 +59,7 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
 
     protected static final int SQUISH_TICKS = 4;
     public static final IntProperty SQUISH_TICK = IntProperty.of("squish_tick", 0, SQUISH_TICKS);
+    public static final BooleanProperty POWERED = BooleanProperty.of("pirkko_powered");
 
     protected final Random random;
 
@@ -77,39 +76,107 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
             .with(FACE, BlockFace.WALL)
             .with(WATERLOGGED, false)
             .with(SQUISH_TICK, 0)
+            .with(POWERED, false)
         );
     }
 
-    public void playPirkko(World world, BlockPos pos) {
-        world.playSound(null, pos, PIRKKO_SOUND, SoundCategory.BLOCKS, 0.8f, 0.9f + this.random.nextFloat() * 0.4f);
+    public void playPirkko(BlockState state, World world, BlockPos pos) {
+//        var attachedBlockstate = getPlacedAgainstBlock(state, world, pos);
+//        if (attachedBlockstate.getBlock() instanceof NoteBlock) {
+//            playPirkkoTuned(state, world, pos, NoteBlock.getNotePitch(attachedBlockstate.get(NoteBlock.NOTE)) * 1.3214085714f); // pitch correction for the voice clip
+//            return;
+//        }
+        playPirkkoUntune(state, world, pos);
     }
+    public void playPirkkoUntune(BlockState state, World world, BlockPos pos) {
+        playPirkkoTuned(state, world, pos, 1.1f + (this.random.nextFloat() - 0.5f) * 0.3f);
+    }
+    public void playPirkkoTuned(BlockState state, World world, BlockPos pos, float pitch) {
+        world.playSound(null, pos, PIRKKO_SOUND, SoundCategory.BLOCKS, 0.8f, pitch);
+    }
+
+
+    protected Direction getPlacedDirection(BlockState state) {
+        var face = state.get(FACE);
+        if (face == BlockFace.FLOOR) {
+            return Direction.DOWN;
+        }
+        if (face == BlockFace.CEILING) {
+            return Direction.UP;
+        }
+        var facing = state.get(FACING);
+        return facing.getOpposite();
+    }
+    protected BlockState getPlacedAgainstBlock(BlockState state, World world, BlockPos pos) {
+        var direction = getPlacedDirection(state);
+        var newPos = pos.add(direction.getVector());
+        return world.getBlockState(newPos);
+    }
+
+    protected ActionResult squish(BlockState state, World world, BlockPos pos) {
+        this.playPirkko(state, world, pos);
+        world.setBlockState(pos, state.with(SQUISH_TICK, SQUISH_TICKS));
+        world.scheduleBlockTick(pos, this, 1);
+        world.emitGameEvent(null, GameEvent.NOTE_BLOCK_PLAY, pos);
+        return ActionResult.SUCCESS;
+    }
+    protected int getSquishTicks(BlockState state) {
+        return state.get(SQUISH_TICK);
+    }
+    protected boolean isSquishing(BlockState state) {
+        var squishTick = getSquishTicks(state);
+        return squishTick > 0;
+    }
+
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        this.playPirkko(world, pos);
-        world.setBlockState(pos, state.with(SQUISH_TICK, SQUISH_TICKS));
-        world.scheduleBlockTick(pos, this, 1);
-        return ActionResult.SUCCESS;
+        return squish(state,world,pos);
     }
 
     @Override
     protected void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
         super.scheduledTick(state, world, pos, random);
-        if (state.get(SQUISH_TICK) > 0) {
+        if (isSquishing(state)) {
             world.setBlockState(pos, state.with(SQUISH_TICK, state.get(SQUISH_TICK) - 1));
             world.scheduleBlockTick(pos, this, 1);
         }
     }
 
     @Override
+    protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, @Nullable WireOrientation wireOrientation, boolean notify) {
+        super.neighborUpdate(state, world, pos, sourceBlock, wireOrientation, notify);
+        boolean hasPower = world.isReceivingRedstonePower(pos);
+        if (hasPower != (Boolean)state.get(POWERED)) {
+            var poweredState = state.with(POWERED, hasPower);
+            if (hasPower && !isSquishing(state)) {
+                this.squish(poweredState,world,pos);
+            } else {
+                world.setBlockState(pos, poweredState);
+            }
+        }
+    }
+
+    @Override
+    protected boolean hasComparatorOutput(BlockState state) {
+        return true;
+    }
+
+    @Override
+    protected int getComparatorOutput(BlockState state, World world, BlockPos pos) {
+        var squishTick = getSquishTicks(state);
+        return squishTick > 0 ? 15 : 0;
+    }
+
+    @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
         super.onPlaced(world, pos, state, placer, itemStack);
-        this.playPirkko(world, pos);
+        this.playPirkko(state, world, pos);
     }
     @Override
     public void onBroken(WorldAccess world, BlockPos pos, BlockState state) {
         super.onBroken(world, pos, state);
-        this.playPirkko((World) world, pos);
+        this.playPirkkoUntune(state, (World) world, pos);
     }
 
     @Override
@@ -136,7 +203,7 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(FACING, FACE, WATERLOGGED, SQUISH_TICK);
+        builder.add(FACING, FACE, WATERLOGGED, SQUISH_TICK, POWERED);
     }
 
     @Override
