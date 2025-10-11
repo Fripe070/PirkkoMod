@@ -27,7 +27,16 @@ public enum PirkkoKind implements StringIdentifiable {
     KONGLIG(18, "konglig"),
     GHOST(19, "ghost"),
     LASERVIOLETT(20, "laserviolett"),
-    CERISE(21, "cerise");
+    CERISE(21, "cerise"),
+    PRIDE_AROMANTIC(22, "pride/aromantic"),
+    PRIDE_ASEXUAL(23, "pride/asexual"),
+    PRIDE_BISEXUAL(24, "pride/bisexual"),
+    PRIDE_GAY_M(25, "pride/gay_m"),
+    PRIDE_GENDER_FLUID(26, "pride/genderfluid"),
+    PRIDE_LESBIAN(27, "pride/lesbian"),
+    PRIDE_NONBINARY(28, "pride/nonbinary"),
+    PRIDE_RAINBOW(29, "pride/rainbow"),
+    PRIDE_TRANSGENDER(30, "pride/transgender");
 
 
     private final int index;
