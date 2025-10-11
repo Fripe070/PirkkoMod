@@ -1,6 +1,7 @@
 package io.github.fripe070.pirkko.datagen;
 
 import io.github.fripe070.pirkko.Pirkko;
+import io.github.fripe070.pirkko.PirkkoKind;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.minecraft.client.data.*;
@@ -32,14 +33,14 @@ public class ModelProvider extends FabricModelProvider {
         var pirkkoModel = new Model(Optional.of(standardPirkkoId), Optional.empty(), TextureKey.TEXTURE);
 
         List<SelectItemModel.SwitchCase<String>> pirkkoModels = new ArrayList<>();
-        for (String kind : Pirkko.PIRKKO_KINDS) {
+        for (PirkkoKind kind : PirkkoKind.values()) {
             var subModel = pirkkoModel.upload(
-                ModelIds.getItemSubModelId(Pirkko.DEFAULT_PIRKKO_ITEM, "/" + kind),
-                TextureMap.texture(TextureMap.getSubId(Pirkko.DEFAULT_PIRKKO_ITEM, "/" + kind)),
+                ModelIds.getItemSubModelId(Pirkko.DEFAULT_PIRKKO_ITEM, "/" + kind.realId()),
+                TextureMap.texture(TextureMap.getSubId(Pirkko.DEFAULT_PIRKKO_ITEM, "/" + kind.realId())),
                 itemModelGenerator.modelCollector
             );
             ItemModel.Unbaked model = ItemModels.basic(subModel);
-            pirkkoModels.add(ItemModels.switchCase(kind, model));
+            pirkkoModels.add(ItemModels.switchCase(kind.asString(), model));
         }
 
         // Create the json file at models/item/pirkko.json

@@ -1,6 +1,8 @@
 package io.github.fripe070.pirkko.datagen;
 
 import io.github.fripe070.pirkko.Pirkko;
+import io.github.fripe070.pirkko.PirkkoKind;
+import io.github.fripe070.pirkko.item.PirkkoItem;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.advancement.Advancement;
@@ -55,17 +57,8 @@ class RecipesProvider extends FabricRecipeProvider {
                     .offerTo(exporter);
 
                 for (var dye : DyeColor.values()) {
-                    var stack = new ItemStack(Pirkko.DEFAULT_PIRKKO_ITEM);
-//                    stack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(dye.getEntityColor()));
-                    CustomModelDataComponent oldModelData = stack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
-                    if (oldModelData == null) {
-                        oldModelData = new CustomModelDataComponent(List.of(), List.of(), List.of(), List.of());
-                    }
-                    var strings = new ArrayList<>(oldModelData.strings());
-                    if (strings.isEmpty()) strings.add("standard");
-                    strings.set(0, "color/" + dye.getId());
-                    var modelData = new CustomModelDataComponent(oldModelData.floats(), oldModelData.flags(), strings, oldModelData.colors());
-                    stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, modelData);
+                    //var stack = new ItemStack(Pirkko.DEFAULT_PIRKKO_ITEM);
+                    var stack = PirkkoItem.getStack(PirkkoKind.fromName("color_" + dye.getId()));
 
                     ShapelessRecipeJsonBuilder.create(itemLookup, RecipeCategory.DECORATIONS, stack)
                         .group(Identifier.of(Pirkko.MOD_ID, "pirkko_dye").toString())

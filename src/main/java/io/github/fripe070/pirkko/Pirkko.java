@@ -21,18 +21,14 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.minecraft.util.Rarity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class Pirkko implements ModInitializer {
     public static final String MOD_ID = "pirkko";
@@ -40,11 +36,6 @@ public class Pirkko implements ModInitializer {
 
     public static final PirkkoBlock PIRKKO_BLOCK = registerPirkkoBlock("pirkko");
     public static final Item DEFAULT_PIRKKO_ITEM = registerPirkkoItem("pirkko", PIRKKO_BLOCK);
-
-    public static final String[] PIRKKO_KINDS = Stream.concat(
-        Arrays.stream(new String[]{"phoz", "ghost", "konglig", "laserviolett", "cerise"}),
-        Arrays.stream(DyeColor.values()).map((color) -> "color/" + color.getId())
-    ).toArray(String[]::new);
 
     public static final SoundEvent PIRKKO_SOUND = registerSoundEvent("pirkko", SoundEvents.ENTITY_COD_FLOP);
     public static final StatusEffect PIRKKO_POWER = new PirkkoPowerEffect();
@@ -80,12 +71,8 @@ public class Pirkko implements ModInitializer {
         );
         Registry.register(Registries.ITEM, Identifier.of(MOD_ID, name), item);
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> {
-            entries.add(item); // Default version
-            // Add all the variations
-            for (String kind : Pirkko.PIRKKO_KINDS) {
-                var stack = item.getDefaultStack();
-                stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(List.of(), List.of(), List.of(kind), List.of()));
-                entries.add(stack);
+            for (PirkkoKind kind : PirkkoKind.values()) {
+                entries.add(PirkkoItem.getStack(kind));
             }
         });
         return item;
