@@ -8,30 +8,26 @@ import eu.pb4.polymer.virtualentity.api.BlockWithElementHolder;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.BlockBoundAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
-import eu.pb4.polymer.virtualentity.api.elements.TextDisplayElement;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.BlockFace;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemDisplayContext;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
-import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.RotationPropertyHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
@@ -50,10 +46,11 @@ import static io.github.fripe070.pirkko.Pirkko.PIRKKO_SOUND;
 
 
 // TODO: Allow waterlogging
-public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHolder, PolymerTexturedBlock, Waterloggable {
+public class PirkkoBlock extends Block implements BlockWithElementHolder, PolymerTexturedBlock, Waterloggable {
     public static final MapCodec<PirkkoBlock> CODEC = createCodec(PirkkoBlock::new);
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
     public static final IntProperty ROTATION = Properties.ROTATION;
+    public static final EnumProperty<Direction> UP_DIRECTION = Properties.FACING;
 
     protected static final int SQUISH_TICKS = 4;
     public static final IntProperty SQUISH_TICK = IntProperty.of("squish_tick", 0, SQUISH_TICKS);
@@ -70,8 +67,7 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
         super(settings);
         this.random = Random.create();
         this.setDefaultState(this.stateManager.getDefaultState()
-            .with(FACING, Direction.NORTH)
-            .with(FACE, BlockFace.WALL)
+            .with(UP_DIRECTION, Direction.NORTH)
             .with(WATERLOGGED, false)
             .with(SQUISH_TICK, 0)
             .with(POWERED, false)
@@ -87,14 +83,7 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
     }
 
     protected Direction getPlacedDirection(BlockState state) {
-        var face = state.get(FACE);
-        if (face == BlockFace.FLOOR) {
-            return Direction.DOWN;
-        }
-        if (face == BlockFace.CEILING) {
-            return Direction.UP;
-        }
-        var facing = state.get(FACING);
+        var facing = state.get(UP_DIRECTION);
         return facing.getOpposite();
     }
     protected BlockState getPlacedAgainstBlock(BlockState state, World world, BlockPos pos) {
@@ -116,6 +105,35 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
     protected boolean isSquishing(BlockState state) {
         var squishTick = getSquishTicks(state);
         return squishTick > 0;
+    }
+    @Nullable
+    public BlockState getPlacementState(ItemPlacementContext ctx) {
+        var side = ctx.getSide();
+        BlockState blockState = this.getDefaultState();
+        blockState = blockState.with(UP_DIRECTION, side);
+
+        if (side == Direction.UP || side == Direction.DOWN) {
+            var playerYaw = ctx.getPlayerYaw();
+            if (side == Direction.UP) {
+                playerYaw = -playerYaw; // yaw needs to be inverted for some reason
+            }
+            var horizontalLookAngle = RotationPropertyHelper.fromYaw(playerYaw);
+            blockState = blockState.with(ROTATION, horizontalLookAngle);
+        } else {
+            if (ctx.getPlayer() != null) {
+                var playerPitch = Math.toRadians(ctx.getPlayer().getPitch());
+                var playerYaw   = Math.toRadians(ctx.getPlayer().getYaw());
+                var playerLookingDirection = new Vec3d(-Math.sin(playerYaw)*Math.cos(playerPitch),Math.sin(playerPitch),Math.cos(playerYaw)*Math.cos(playerPitch));
+                var perpToSide = side.getUnitVector().cross(Direction.UP.getUnitVector());
+                var angle = Math.atan2(playerLookingDirection.getY(), perpToSide.dot(playerLookingDirection.toVector3f()));
+                blockState = blockState.with(ROTATION, RotationPropertyHelper.fromYaw((float)Math.toDegrees(angle)-90));
+            }
+        }
+
+        if (blockState.canPlaceAt(ctx.getWorld(), ctx.getBlockPos())) {
+            return blockState.with(WATERLOGGED, ctx.getWorld().getFluidState(ctx.getBlockPos()).getFluid() == Fluids.WATER);
+        }
+        return null;
     }
 
     @Override
@@ -166,11 +184,6 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
         this.playPirkko((World) world, pos);
     }
 
-    @Override
-    public @Nullable BlockState getPlacementState(ItemPlacementContext ctx) {
-        return super.getPlacementState(ctx)
-            .with(WATERLOGGED, ctx.getWorld().getFluidState(ctx.getBlockPos()).getFluid() == Fluids.WATER);
-    }
 
     @Override
     protected boolean canPlaceAt(BlockState state, WorldView world, BlockPos pos) {
@@ -190,15 +203,15 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(FACING, FACE, WATERLOGGED, SQUISH_TICK, POWERED, ROTATION);
+        builder.add(UP_DIRECTION, WATERLOGGED, SQUISH_TICK, POWERED, ROTATION);
     }
 
     @Override
     public BlockState getPolymerBlockState(BlockState state, PacketContext context) {
-        return PolymerBlockResourceUtils.requestEmpty(BlockModelType.valueOf((switch (state.get(FACE)) {
-            case FLOOR -> "BOTTOM_TRAPDOOR";
-            case CEILING -> "TOP_TRAPDOOR";
-            default -> state.get(FACING).asString().toUpperCase(Locale.ROOT) + "_TRAPDOOR";
+        return PolymerBlockResourceUtils.requestEmpty(BlockModelType.valueOf((switch (state.get(UP_DIRECTION)) {
+            case Direction.UP -> "BOTTOM_TRAPDOOR";
+            case Direction.DOWN -> "TOP_TRAPDOOR";
+            default -> state.get(UP_DIRECTION).asString().toUpperCase(Locale.ROOT) + "_TRAPDOOR";
         }) + (state.get(WATERLOGGED) ? "_WATERLOGGED" : "")));
     }
 
@@ -232,12 +245,12 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
         }
         public void RecomputeBaseTransform(BlockState blockState) {
             this.baseTransform = new Matrix4f();
-            if (blockState.get(FACE) == BlockFace.CEILING) {
+            var facing = blockState.get(UP_DIRECTION);
+            if (facing == Direction.DOWN) {
                 this.baseTransform.rotateY((float)Math.toRadians(180));
                 this.baseTransform.rotateX((float)Math.toRadians(180));
-            }
-            if (blockState.get(FACE) == BlockFace.WALL) {
-                var rotation = Direction.getHorizontalDegreesOrThrow(blockState.get(FACING));
+            } else if (facing != Direction.UP) {
+                var rotation = Direction.getHorizontalDegreesOrThrow(facing);
                 this.baseTransform.rotateY((float)Math.toRadians(-rotation));
                 this.baseTransform.rotateX((float)Math.toRadians(90));
             }
