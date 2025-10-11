@@ -6,9 +6,15 @@ import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.BlocksAttacksComponent;
+import net.minecraft.component.type.ConsumableComponent;
+import net.minecraft.component.type.EquippableComponent;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
@@ -31,6 +37,11 @@ public class PirkkoItem extends BlockItem implements PolymerItem {
     @Override
     public ActionResult place(ItemPlacementContext context) {
         return super.place(context);
+    }
+
+    @Override
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
+        return ActionResult.FAIL;
     }
 
     @Override
