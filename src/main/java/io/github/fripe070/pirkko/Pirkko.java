@@ -57,19 +57,6 @@ public class Pirkko implements ModInitializer {
         Registry.register(Registries.STATUS_EFFECT, Identifier.of(MOD_ID, "pirkko_power"), PIRKKO_POWER);
     }
 
-//    public static Item getPirkkoByColor(DyeColor color) {
-//        return PIRKKO_ITEMS.get(color.getIndex() + 1); // +1 because default pirkko is at index 0
-//    }
-
-    private static List<Item> registerAllPirkkoItems() {
-        List<Item> blocks = new ArrayList<>();
-        blocks.add(DEFAULT_PIRKKO_ITEM);
-        for (DyeColor color : DyeColor.values()) {
-            blocks.add(registerPirkkoItem(color.getId() + "_pirkko", PIRKKO_BLOCK));
-        }
-        return blocks;
-    }
-
     private static PirkkoBlock registerPirkkoBlock(String name) {
         var registryKey = Identifier.of(MOD_ID, name);
         var block = new PirkkoBlock(AbstractBlock.Settings.create()
@@ -80,14 +67,14 @@ public class Pirkko implements ModInitializer {
         Registry.register(Registries.BLOCK, registryKey, block);
         return block;
     }
+
     private static Item registerPirkkoItem(String name, PirkkoBlock block) {
         var registryKey = Identifier.of(MOD_ID, name);
-//        var item = new PolymerBlockItem(block, new Item.Settings()
         var item = new PirkkoItem(block, new Item.Settings()
             .maxCount(65)
             .fireproof()
             .rarity(Rarity.EPIC)
-            .equippable(EquipmentSlot.HEAD)
+            .equippableUnswappable(EquipmentSlot.HEAD)
             .registryKey(RegistryKey.of(RegistryKeys.ITEM, registryKey))
 //            .useBlockPrefixedTranslationKey()
         );

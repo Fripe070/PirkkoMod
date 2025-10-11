@@ -57,7 +57,7 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
 
     protected static final int SQUISH_TICKS = 4;
     public static final IntProperty SQUISH_TICK = IntProperty.of("squish_tick", 0, SQUISH_TICKS);
-    public static final BooleanProperty POWERED = BooleanProperty.of("pirkko_powered");
+    public static final BooleanProperty POWERED = BooleanProperty.of("powered");
 
     protected final Random random;
 
@@ -78,21 +78,12 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
         );
     }
 
-    public void playPirkko(BlockState state, World world, BlockPos pos) {
-//        var attachedBlockstate = getPlacedAgainstBlock(state, world, pos);
-//        if (attachedBlockstate.getBlock() instanceof NoteBlock) {
-//            playPirkkoTuned(state, world, pos, NoteBlock.getNotePitch(attachedBlockstate.get(NoteBlock.NOTE)) * 1.3214085714f); // pitch correction for the voice clip
-//            return;
-//        }
-        playPirkkoUntune(state, world, pos);
+    public void playPirkko(World world, BlockPos pos) {
+        playPirkko(world, pos, 1.1f + (this.random.nextFloat() - 0.5f) * 0.3f);
     }
-    public void playPirkkoUntune(BlockState state, World world, BlockPos pos) {
-        playPirkkoTuned(state, world, pos, 1.1f + (this.random.nextFloat() - 0.5f) * 0.3f);
-    }
-    public void playPirkkoTuned(BlockState state, World world, BlockPos pos, float pitch) {
+    public void playPirkko(World world, BlockPos pos, float pitch) {
         world.playSound(null, pos, PIRKKO_SOUND, SoundCategory.BLOCKS, 0.8f, pitch);
     }
-
 
     protected Direction getPlacedDirection(BlockState state) {
         var face = state.get(FACE);
@@ -112,7 +103,7 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
     }
 
     protected ActionResult squish(BlockState state, World world, BlockPos pos) {
-        this.playPirkko(state, world, pos);
+        this.playPirkko(world, pos);
         world.setBlockState(pos, state.with(SQUISH_TICK, SQUISH_TICKS));
         world.scheduleBlockTick(pos, this, 1);
         world.emitGameEvent(null, GameEvent.NOTE_BLOCK_PLAY, pos);
@@ -125,7 +116,6 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
         var squishTick = getSquishTicks(state);
         return squishTick > 0;
     }
-
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
@@ -145,12 +135,11 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
     protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, @Nullable WireOrientation wireOrientation, boolean notify) {
         super.neighborUpdate(state, world, pos, sourceBlock, wireOrientation, notify);
         boolean hasPower = world.isReceivingRedstonePower(pos);
-        if (hasPower != (Boolean)state.get(POWERED)) {
-            var poweredState = state.with(POWERED, hasPower);
-            if (hasPower && !isSquishing(state)) {
-                this.squish(poweredState,world,pos);
-            } else {
-                world.setBlockState(pos, poweredState);
+        if (hasPower != state.get(POWERED)) {
+            BlockState poweredState = state.with(POWERED, hasPower);
+            world.setBlockState(pos, poweredState);
+            if (hasPower) {
+                this.squish(poweredState, world, pos);
             }
         }
     }
@@ -162,19 +151,18 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
 
     @Override
     protected int getComparatorOutput(BlockState state, World world, BlockPos pos) {
-        var squishTick = getSquishTicks(state);
-        return squishTick > 0 ? 15 : 0;
+        return Math.max(0, Math.min(15, getSquishTicks(state) * 15 / (SQUISH_TICKS-1)));
     }
 
     @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
         super.onPlaced(world, pos, state, placer, itemStack);
-        this.playPirkko(state, world, pos);
+        this.playPirkko(world, pos);
     }
     @Override
     public void onBroken(WorldAccess world, BlockPos pos, BlockState state) {
         super.onBroken(world, pos, state);
-        this.playPirkkoUntune(state, (World) world, pos);
+        this.playPirkko((World) world, pos);
     }
 
     @Override
