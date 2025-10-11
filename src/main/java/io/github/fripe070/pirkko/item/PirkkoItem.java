@@ -11,12 +11,15 @@ import net.minecraft.component.type.ConsumableComponent;
 import net.minecraft.component.type.EquippableComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
+
+import java.util.List;
 
 // TODO: Render kind as a tooltip
 public class PirkkoItem extends BlockItem implements PolymerItem {
@@ -49,5 +52,10 @@ public class PirkkoItem extends BlockItem implements PolymerItem {
         BlockState blockState = this.getBlock().getPlacementState(context);
         return blockState != null && this.canPlace(context, blockState) ? blockState : null;
 //        return super.getPlacementState(context);
+    }
+
+    @Override
+    public void modifyClientTooltip(List<Text> tooltip, ItemStack stack, PacketContext context) {
+        PolymerItem.super.modifyClientTooltip(tooltip, stack, context);
     }
 }
