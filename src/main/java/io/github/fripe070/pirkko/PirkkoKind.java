@@ -1,89 +1,102 @@
 package io.github.fripe070.pirkko;
 
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.Rarity;
 import net.minecraft.util.StringIdentifiable;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 public enum PirkkoKind implements StringIdentifiable {
-    BLANK(0, "blank"),
-    COLOR_WHITE(1, "color/white"),
-    COLOR_ORANGE(2, "color/orange"),
-    COLOR_MAGENTA(3, "color/magenta"),
-    COLOR_LIGHT_BLUE(4, "color/light_blue"),
-    COLOR_YELLOW(5, "color/yellow"),
-    COLOR_LIME(6, "color/lime"),
-    COLOR_PINK(7, "color/pink"),
-    COLOR_GRAY(8, "color/gray"),
-    COLOR_LIGHT_GRAY(9, "color/light_gray"),
-    COLOR_CYAN(10, "color/cyan"),
-    COLOR_PURPLE(11, "color/purple"),
-    COLOR_BLUE(12, "color/blue"),
-    COLOR_BROWN(13, "color/brown"),
-    COLOR_GREEN(14, "color/green"),
-    COLOR_RED(15, "color/red"),
-    COLOR_BLACK(16, "color/black"),
-    PHOZ(17, "phoz"),
-    KONGLIG(18, "konglig"),
-    GHOST(19, "ghost"),
-    LASERVIOLETT(20, "laserviolett"),
-    CERISE(21, "cerise"),
-    PRIDE_AROMANTIC(22, "pride/aromantic"),
-    PRIDE_ASEXUAL(23, "pride/asexual"),
-    PRIDE_BISEXUAL(24, "pride/bisexual"),
-    PRIDE_GAY_M(25, "pride/gay_m"),
-    PRIDE_GENDER_FLUID(26, "pride/genderfluid"),
-    PRIDE_LESBIAN(27, "pride/lesbian"),
-    PRIDE_NONBINARY(28, "pride/nonbinary"),
-    PRIDE_RAINBOW(29, "pride/rainbow"),
-    PRIDE_TRANSGENDER(30, "pride/transgender");
+    BLANK("blank", Rarity.UNCOMMON),
 
+    COLOR_WHITE("color/white", Rarity.UNCOMMON),
+    COLOR_ORANGE("color/orange", Rarity.UNCOMMON),
+    COLOR_MAGENTA("color/magenta", Rarity.UNCOMMON),
+    COLOR_LIGHT_BLUE("color/light_blue", Rarity.UNCOMMON),
+    COLOR_YELLOW("color/yellow", Rarity.UNCOMMON),
+    COLOR_LIME("color/lime", Rarity.UNCOMMON),
+    COLOR_PINK("color/pink", Rarity.UNCOMMON),
+    COLOR_GRAY("color/gray", Rarity.UNCOMMON),
+    COLOR_LIGHT_GRAY("color/light_gray", Rarity.UNCOMMON),
+    COLOR_CYAN("color/cyan", Rarity.UNCOMMON),
+    COLOR_PURPLE("color/purple", Rarity.UNCOMMON),
+    COLOR_BLUE("color/blue", Rarity.UNCOMMON),
+    COLOR_BROWN("color/brown", Rarity.UNCOMMON),
+    COLOR_GREEN("color/green", Rarity.UNCOMMON),
+    COLOR_RED("color/red", Rarity.UNCOMMON),
+    COLOR_BLACK("color/black", Rarity.UNCOMMON),
 
-    private final int index;
-    private final String id;
-    private final String friendlyId;
-    private final PirkkoKindData pirkkoKindData;
+    PRIDE_AROMANTIC("pride/aromantic", Rarity.UNCOMMON),
+    PRIDE_ASEXUAL("pride/asexual", Rarity.UNCOMMON),
+    PRIDE_BISEXUAL("pride/bisexual", Rarity.UNCOMMON),
+    PRIDE_GAY_M("pride/gay_m", Rarity.UNCOMMON),
+    PRIDE_GENDER_FLUID("pride/genderfluid", Rarity.UNCOMMON),
+    PRIDE_LESBIAN("pride/lesbian", Rarity.UNCOMMON),
+    PRIDE_NONBINARY("pride/nonbinary", Rarity.UNCOMMON),
+    PRIDE_RAINBOW("pride/rainbow", Rarity.UNCOMMON),
+    PRIDE_TRANSGENDER("pride/transgender", Rarity.UNCOMMON),
 
-    PirkkoKind(int index, String id) {
-        this.index = index;
-        this.id = id;
-        this.friendlyId = id.replace("/", "_");
-        this.pirkkoKindData = new PirkkoKindData();
+    LASERVIOLETT("laserviolett", Rarity.RARE),
+    CERISE("cerise", Rarity.RARE),
+    PHOZ("phoz", Rarity.RARE, true),
+    KONGLIG("konglig", Rarity.RARE, true),
+    GHOST("ghost", Rarity.RARE, true);
+
+    private final String assetPath;
+    private final Rarity rarity;
+    private final @Nullable SoundEvent soundEvent;
+
+    PirkkoKind(String assetPath, Rarity rarity) {
+        this(assetPath, rarity, false);
+    }
+    PirkkoKind(String assetPath, Rarity rarity, boolean useCustomSound) {
+        this.assetPath = assetPath;
+        this.rarity = rarity;
+        var sound = SoundEvent.of(Identifier.of(Pirkko.MOD_ID, "pirkko/" + this.getPath()));
+        this.soundEvent = useCustomSound ? sound : null;
     }
 
-    public static void InitializePirkkoKindData() {
-        GHOST.pirkkoKindData()
-                .setSound(Pirkko.PIRKKO_GHOST_SOUND);
-        PHOZ.pirkkoKindData()
-                .setSound(Pirkko.PIRKKO_PHOZ_SOUND);
-        KONGLIG.pirkkoKindData()
-                .setSound(Pirkko.PIRKKO_KONGLIG_SOUND);
+    public String getPath() {
+        return assetPath;
+    }
+    public String getId() {
+        return assetPath.replace("/", "_");
+    }
+    public String getTranslationKey() {
+        return assetPath.replace("/", ".");
+    }
+
+    public Rarity getRarity() {
+        return rarity;
+    }
+    public boolean usesCustomSound() {
+        return soundEvent != null;
+    }
+    public SoundEvent getSound() {
+        return Optional.ofNullable(soundEvent).orElse(Pirkko.DEFAULT_PIRKKO_SOUND);
     }
 
     @Override
     public String asString() {
-        return friendlyId;
-    }
-
-    public String realId() {
-        return id;
-    }
-
-    public PirkkoKindData pirkkoKindData() {
-        return pirkkoKindData;
-    }
-
-    public int getIndex() {
-        return index;
+        return this.getId();
     }
 
     @Nullable
-    public static PirkkoKind fromName(String name) {
-        for (PirkkoKind kind : PirkkoKind.values()) {
-            if (Objects.equals(kind.asString(), name)) {
-                return kind;
-            }
-        }
-        return null;
+    public static PirkkoKind fromPath(String path) {
+        return Stream.of(values())
+            .filter(kind -> kind.getPath().equals(path))
+            .findFirst()
+            .orElse(null);
+    }
+
+    @Nullable
+    public static PirkkoKind fromId(String id) {
+        return Stream.of(values())
+            .filter(kind -> kind.getId().equals(id))
+            .findFirst()
+            .orElse(null);
     }
 }

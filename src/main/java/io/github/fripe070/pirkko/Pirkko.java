@@ -1,6 +1,7 @@
 package io.github.fripe070.pirkko;
 
 import eu.pb4.polymer.core.api.other.PolymerSoundEvent;
+import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.polymer.rsm.api.RegistrySyncUtils;
 import io.github.fripe070.pirkko.block.PirkkoBlock;
 import io.github.fripe070.pirkko.effect.PirkkoPowerEffect;
@@ -20,8 +21,6 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
-import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
-import net.minecraft.util.Rarity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,12 +31,8 @@ public class Pirkko implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("pirkko");
 
     public static final PirkkoBlock PIRKKO_BLOCK = registerPirkkoBlock("pirkko");
-    public static final Item DEFAULT_PIRKKO_ITEM = registerPirkkoItem("pirkko", PIRKKO_BLOCK);
-
-    public static final SoundEvent PIRKKO_SOUND = registerSoundEvent("pirkko/pirkko", SoundEvents.ENTITY_COD_FLOP);
-    public static final SoundEvent PIRKKO_GHOST_SOUND = registerSoundEvent("pirkko/ghost", SoundEvents.ENTITY_COD_FLOP);
-    public static final SoundEvent PIRKKO_PHOZ_SOUND = registerSoundEvent("pirkko/phoz", SoundEvents.ENTITY_COD_FLOP);
-    public static final SoundEvent PIRKKO_KONGLIG_SOUND = registerSoundEvent("pirkko/konglig", SoundEvents.ENTITY_COD_FLOP);
+    public static final PirkkoItem PIRKKO_ITEM = registerPirkkoItem("pirkko", PIRKKO_BLOCK);
+    public static final SoundEvent DEFAULT_PIRKKO_SOUND = registerSoundEvent("pirkko/pirkko", SoundEvents.ENTITY_COD_FLOP);
     public static final StatusEffect PIRKKO_POWER = new PirkkoPowerEffect();
 
     @Override
@@ -46,7 +41,13 @@ public class Pirkko implements ModInitializer {
         PolymerResourcePackUtils.markAsRequired();
 
         Registry.register(Registries.STATUS_EFFECT, Identifier.of(MOD_ID, "pirkko_power"), PIRKKO_POWER);
-        PirkkoKind.InitializePirkkoKindData();
+
+        for (PirkkoKind kind : PirkkoKind.values()) {
+            if (!kind.usesCustomSound()) continue;
+            var sound = kind.getSound();
+            Registry.register(Registries.SOUND_EVENT, sound.id(), sound);
+            PolymerSoundEvent.registerOverlay(sound);
+        }
     }
 
     private static PirkkoBlock registerPirkkoBlock(String name) {
@@ -60,15 +61,14 @@ public class Pirkko implements ModInitializer {
         return block;
     }
 
-    private static Item registerPirkkoItem(String name, PirkkoBlock block) {
+    private static PirkkoItem registerPirkkoItem(String name, PirkkoBlock block) {
         var registryKey = Identifier.of(MOD_ID, name);
         var item = new PirkkoItem(block, new Item.Settings()
             .maxCount(65)
             .fireproof()
-            .rarity(Rarity.EPIC)
             .equippableUnswappable(EquipmentSlot.HEAD)
             .registryKey(RegistryKey.of(RegistryKeys.ITEM, registryKey))
-//            .useBlockPrefixedTranslationKey()
+            .useBlockPrefixedTranslationKey()
         );
         Registry.register(Registries.ITEM, Identifier.of(MOD_ID, name), item);
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> {

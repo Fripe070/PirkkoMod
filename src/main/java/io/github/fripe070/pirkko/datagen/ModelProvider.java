@@ -8,14 +8,11 @@ import net.minecraft.client.data.*;
 import net.minecraft.client.render.item.model.ItemModel;
 import net.minecraft.client.render.item.model.SelectItemModel;
 import net.minecraft.client.render.item.property.select.CustomModelDataStringProperty;
-import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class ModelProvider extends FabricModelProvider {
     public ModelProvider(FabricDataOutput output) {
@@ -23,34 +20,36 @@ public class ModelProvider extends FabricModelProvider {
     }
 
     @Override
-    public void generateBlockStateModels(BlockStateModelGenerator blockStateModelGenerator) {
-    }
-
-
-    @Override
     public void generateItemModels(ItemModelGenerator itemModelGenerator) {
-        var standardPirkkoId = Identifier.of(Pirkko.MOD_ID, "item/pirkko/standard");
-        var pirkkoModel = new Model(Optional.of(standardPirkkoId), Optional.empty(), TextureKey.TEXTURE);
+        var blankPirkkoId = Identifier.of(Pirkko.MOD_ID, "item/pirkko/base");
+        var pirkkoModel = new Model(Optional.of(blankPirkkoId), Optional.empty(), TextureKey.TEXTURE);
 
         List<SelectItemModel.SwitchCase<String>> pirkkoModels = new ArrayList<>();
         for (PirkkoKind kind : PirkkoKind.values()) {
+            // Skip the default blank kind
+            if (kind == PirkkoKind.BLANK) continue;
+
             var subModel = pirkkoModel.upload(
-                ModelIds.getItemSubModelId(Pirkko.DEFAULT_PIRKKO_ITEM, "/" + kind.realId()),
-                TextureMap.texture(TextureMap.getSubId(Pirkko.DEFAULT_PIRKKO_ITEM, "/" + kind.realId())),
+                ModelIds.getItemSubModelId(Pirkko.PIRKKO_ITEM, "/" + kind.getPath()),
+                TextureMap.texture(TextureMap.getSubId(Pirkko.PIRKKO_ITEM, "/" + kind.getPath())),
                 itemModelGenerator.modelCollector
             );
             ItemModel.Unbaked model = ItemModels.basic(subModel);
-            pirkkoModels.add(ItemModels.switchCase(kind.asString(), model));
+            pirkkoModels.add(ItemModels.switchCase(kind.getId(), model));
         }
 
         // Create the json file at models/item/pirkko.json
         itemModelGenerator.output.accept(
-            Pirkko.DEFAULT_PIRKKO_ITEM,
+            Pirkko.PIRKKO_ITEM,
             ItemModels.select(
                 new CustomModelDataStringProperty(0),
-                ItemModels.basic(standardPirkkoId),
+                ItemModels.basic(blankPirkkoId),
                 pirkkoModels
             )
         );
+    }
+
+    @Override
+    public void generateBlockStateModels(BlockStateModelGenerator blockStateModelGenerator) {
     }
 }
