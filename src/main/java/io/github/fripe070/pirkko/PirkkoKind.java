@@ -4,6 +4,7 @@ import net.minecraft.util.StringIdentifiable;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.stream.Stream;
 
 public enum PirkkoKind implements StringIdentifiable {
     BLANK(0, "blank"),
@@ -29,35 +30,44 @@ public enum PirkkoKind implements StringIdentifiable {
     LASERVIOLETT(20, "laserviolett"),
     CERISE(21, "cerise");
 
-
     private final int index;
-    private final String id;
-    private final String friendlyId;
+    private final String assetPath;
 
-    PirkkoKind(int index, String id) {
+    PirkkoKind(int index, String assetPath) {
         this.index = index;
-        this.id = id;
-        this.friendlyId = id.replace("/", "_");
+        this.assetPath = assetPath;
+    }
+
+    public String getPath() {
+        return assetPath;
+    }
+    public String getId() {
+        return assetPath.replace("/", "_");
+    }
+    public String getTranslationKey() {
+        return assetPath.replace("/", ".");
+    }
+    public int getIndex() {
+        return index;
     }
 
     @Override
     public String asString() {
-        return friendlyId;
-    }
-    public String realId() {
-        return id;
+        return this.getId();
     }
 
-    public int getIndex() {
-        return index;
+    @Nullable
+    public static PirkkoKind fromPath(String path) {
+        return Stream.of(values())
+            .filter(kind -> kind.getPath().equals(path))
+            .findFirst()
+            .orElse(null);
     }
     @Nullable
-    public static PirkkoKind fromName(String name) {
-        for (PirkkoKind kind : PirkkoKind.values()) {
-            if (Objects.equals(kind.asString(), name)) {
-                return kind;
-            }
-        }
-        return null;
+    public static PirkkoKind fromId(String id) {
+        return Stream.of(values())
+            .filter(kind -> kind.getId().equals(id))
+            .findFirst()
+            .orElse(null);
     }
 }

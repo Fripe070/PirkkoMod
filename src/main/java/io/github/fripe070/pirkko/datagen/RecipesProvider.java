@@ -5,34 +5,19 @@ import io.github.fripe070.pirkko.PirkkoKind;
 import io.github.fripe070.pirkko.item.PirkkoItem;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
-import net.minecraft.advancement.Advancement;
-import net.minecraft.advancement.AdvancementEntry;
-import net.minecraft.advancement.criterion.InventoryChangedCriterion;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
-import net.minecraft.component.type.DyedColorComponent;
 import net.minecraft.data.recipe.RecipeExporter;
 import net.minecraft.data.recipe.RecipeGenerator;
 import net.minecraft.data.recipe.ShapedRecipeJsonBuilder;
 import net.minecraft.data.recipe.ShapelessRecipeJsonBuilder;
-import net.minecraft.item.DyeItem;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.recipe.ShapedRecipe;
-import net.minecraft.recipe.ShapelessRecipe;
 import net.minecraft.recipe.book.RecipeCategory;
 import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 class RecipesProvider extends FabricRecipeProvider {
@@ -46,7 +31,7 @@ class RecipesProvider extends FabricRecipeProvider {
             @Override
             public void generate() {
                 RegistryWrapper.Impl<Item> itemLookup = registries.getOrThrow(RegistryKeys.ITEM);
-                ShapedRecipeJsonBuilder.create(itemLookup, RecipeCategory.DECORATIONS, Pirkko.DEFAULT_PIRKKO_ITEM)
+                ShapedRecipeJsonBuilder.create(itemLookup, RecipeCategory.DECORATIONS, Pirkko.PIRKKO_ITEM)
                     .pattern(" t ")
                     .pattern("trt")
                     .pattern(" t ")
@@ -56,16 +41,27 @@ class RecipesProvider extends FabricRecipeProvider {
                     .criterion(hasItem(Items.RESIN_BRICK), conditionsFromItem(Items.RESIN_BRICK))
                     .offerTo(exporter);
 
-                for (var dye : DyeColor.values()) {
-                    //var stack = new ItemStack(Pirkko.DEFAULT_PIRKKO_ITEM);
-                    var stack = PirkkoItem.getStack(PirkkoKind.fromName("color_" + dye.getId()));
+                generateDyeingRecipes(itemLookup);
+            }
 
-                    ShapelessRecipeJsonBuilder.create(itemLookup, RecipeCategory.DECORATIONS, stack)
-                        .group(Identifier.of(Pirkko.MOD_ID, "pirkko_dye").toString())
-                        .input(Pirkko.DEFAULT_PIRKKO_ITEM)
-                        .input(Registries.ITEM.get(Identifier.ofVanilla(dye.asString() + "_dye")))
-                        .criterion(hasItem(Pirkko.DEFAULT_PIRKKO_ITEM), conditionsFromItem(Pirkko.DEFAULT_PIRKKO_ITEM))
-                        .offerTo(exporter, Identifier.of(Pirkko.MOD_ID, dye.asString() + "_pirkko").toString());
+            private void generateDyeingRecipes(RegistryWrapper.Impl<Item> itemLookup) {
+                String recipeGroup = Identifier.of(Pirkko.MOD_ID, "pirkko_dyeing").toString();
+                for (var dye : DyeColor.values()) {
+                    var kind = PirkkoKind.fromPath("color/" + dye.getId());
+                    if (kind == null) {
+                        Pirkko.LOGGER.warn("Unknown dye color: {}", dye.getId());
+                        continue;
+                    }
+
+                    var dyeItem = Registries.ITEM.get(Identifier.ofVanilla(dye.asString() + "_dye"));
+                    String recipeId = Identifier.of(Pirkko.MOD_ID, dye.asString() + "_pirkko").toString();
+
+                    ShapelessRecipeJsonBuilder.create(itemLookup, RecipeCategory.DECORATIONS, PirkkoItem.getStack(kind))
+                        .group(recipeGroup)
+                        .input(Pirkko.PIRKKO_ITEM)
+                        .input(dyeItem)
+                        .criterion(hasItem(Pirkko.PIRKKO_ITEM), conditionsFromItem(Pirkko.PIRKKO_ITEM))
+                        .offerTo(exporter, recipeId);
                 }
             }
         };
