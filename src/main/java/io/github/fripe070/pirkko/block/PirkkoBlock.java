@@ -31,6 +31,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.RotationPropertyHelper;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
@@ -52,8 +53,7 @@ import static io.github.fripe070.pirkko.Pirkko.PIRKKO_SOUND;
 public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHolder, PolymerTexturedBlock, Waterloggable {
     public static final MapCodec<PirkkoBlock> CODEC = createCodec(PirkkoBlock::new);
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
-    // TODO: Support more granular rotation
-//    public static final IntProperty ROTATION = Properties.ROTATION;
+    public static final IntProperty ROTATION = Properties.ROTATION;
 
     protected static final int SQUISH_TICKS = 4;
     public static final IntProperty SQUISH_TICK = IntProperty.of("squish_tick", 0, SQUISH_TICKS);
@@ -75,6 +75,7 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
             .with(WATERLOGGED, false)
             .with(SQUISH_TICK, 0)
             .with(POWERED, false)
+            .with(ROTATION, 2)
         );
     }
 
@@ -189,7 +190,7 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(FACING, FACE, WATERLOGGED, SQUISH_TICK, POWERED);
+        builder.add(FACING, FACE, WATERLOGGED, SQUISH_TICK, POWERED, ROTATION);
     }
 
     @Override
@@ -214,28 +215,33 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
     @SuppressWarnings("removal")
     static class PirkkoHolder extends ElementHolder {
         private final ItemDisplayElement display;
-        private final TextDisplayElement debugText;
-        private final Matrix4f baseTransform;
+        //private final TextDisplayElement debugText;
+        private Matrix4f baseTransform;
 
         public PirkkoHolder(BlockState initialBlockState, ItemStack itemStack) {
-            this.baseTransform = new Matrix4f()
-                .rotate(initialBlockState.get(FACING).getRotationQuaternion())
-                .rotateZ(initialBlockState.get(FACE) == BlockFace.CEILING ? (float) Math.toRadians(180) : 0f)
-                .rotateY(initialBlockState.get(FACE) == BlockFace.WALL ? (float) Math.toRadians(180) : 0f)
-                .rotateX((float) Math.toRadians(switch (initialBlockState.get(FACE)) {
-                    case FLOOR -> - 90;
-                    case CEILING -> 90;
-                    case WALL -> 0;
-                }));
-
+            this.baseTransform = new Matrix4f();
+            this.RecomputeBaseTransform(initialBlockState);
             this.display = addElement(new ItemDisplayElement(itemStack));
             this.display.setModelTransformation(ItemDisplayContext.NONE);
             this.display.setTransformation(this.baseTransform);
             this.display.setInterpolationDuration(1);
 
-            this.debugText = addElement(new TextDisplayElement(Text.of("Debug")));
-            this.debugText.setBillboardMode(DisplayEntity.BillboardMode.CENTER);
-            this.debugText.setScale(new Vector3f(0.5f));
+            //this.debugText = addElement(new TextDisplayElement(Text.of("Debug")));
+            //this.debugText.setBillboardMode(DisplayEntity.BillboardMode.CENTER);
+            //this.debugText.setScale(new Vector3f(0.5f));
+        }
+        public void RecomputeBaseTransform(BlockState blockState) {
+            this.baseTransform = new Matrix4f();
+            if (blockState.get(FACE) == BlockFace.CEILING) {
+                this.baseTransform.rotateY((float)Math.toRadians(180));
+                this.baseTransform.rotateX((float)Math.toRadians(180));
+            }
+            if (blockState.get(FACE) == BlockFace.WALL) {
+                var rotation = Direction.getHorizontalDegreesOrThrow(blockState.get(FACING));
+                this.baseTransform.rotateY((float)Math.toRadians(-rotation));
+                this.baseTransform.rotateX((float)Math.toRadians(90));
+            }
+            this.baseTransform.rotateY((float)Math.toRadians(RotationPropertyHelper.toDegrees(blockState.get(ROTATION))));
         }
         public PirkkoHolder(BlockState initialBlockState, Item item) {
             this(initialBlockState, item.getDefaultStack());
@@ -264,7 +270,7 @@ public class PirkkoBlock extends WallMountedBlock implements BlockWithElementHol
                 this.display.setTransformation(this.baseTransform);
             }
 
-            this.debugText.setText(Text.of("Squish: %d/%d".formatted(squishTick, SQUISH_TICKS)));
+            //this.debugText.setText(Text.of("Squish: %d/%d".formatted(squishTick, SQUISH_TICKS)));
         }
     }
 }
