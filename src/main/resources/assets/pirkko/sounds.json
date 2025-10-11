@@ -1,6 +1,9 @@
 {
   "pirkko": {
     "subtitle": "sound.pirkko.pirkko",
-    "sounds": ["pirkko:pirkko"]
+    "sounds": ["pirkko:pirkko",
+      "pirkko:pirkko2",
+      "pirkko:pirkko3",
+      "pirkko:pirkko4"]
   }
 }
