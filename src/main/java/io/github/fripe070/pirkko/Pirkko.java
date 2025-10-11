@@ -80,7 +80,7 @@ public class Pirkko implements ModInitializer {
         );
         Registry.register(Registries.ITEM, Identifier.of(MOD_ID, name), item);
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> {
-            entries.add(item); // Default  version
+            entries.add(item); // Default version
             // Add all the variations
             for (String kind : Pirkko.PIRKKO_KINDS) {
                 var stack = item.getDefaultStack();
