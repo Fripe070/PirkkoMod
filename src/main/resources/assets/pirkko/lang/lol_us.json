@@ -27,5 +27,15 @@
   "block.pirkko.pirkko.color.brown": "braun plastgoop",
   "block.pirkko.pirkko.color.green": "grein goop",
   "block.pirkko.pirkko.color.red": "red goop",
-  "block.pirkko.pirkko.color.black": "blackish goop"
+  "block.pirkko.pirkko.color.black": "blackish goop",
+
+  "block.pirkko.pirkko.pride.aromantic": "aro goop",
+  "block.pirkko.pirkko.pride.asexual":"ace goop",
+  "block.pirkko.pirkko.pride.bisexual": "bi goop",
+  "block.pirkko.pirkko.pride.gay_m":"gay goop",
+  "block.pirkko.pirkko.pride.genderfluid": "gender fluid",
+  "block.pirkko.pirkko.pride.lesbian":"lesbian goop",
+  "block.pirkko.pirkko.pride.nonbinary": "monbinary goop",
+  "block.pirkko.pirkko.pride.rainbow":"rainbow goop",
+  "block.pirkko.pirkko.pride.transgender": "trans goop"
 }
