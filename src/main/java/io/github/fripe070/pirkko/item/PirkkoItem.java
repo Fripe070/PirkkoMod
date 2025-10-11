@@ -40,11 +40,6 @@ public class PirkkoItem extends BlockItem implements PolymerItem {
     }
 
     @Override
-    public ActionResult use(World world, PlayerEntity user, Hand hand) {
-        return ActionResult.FAIL;
-    }
-
-    @Override
     protected @Nullable BlockState getPlacementState(ItemPlacementContext context) {
         BlockState blockState = this.getBlock().getPlacementState(context);
         return blockState != null && this.canPlace(context, blockState) ? blockState : null;
