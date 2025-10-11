@@ -5,6 +5,7 @@ import eu.pb4.polymer.core.api.item.SimplePolymerItem;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.component.ComponentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.BlocksAttacksComponent;
 import net.minecraft.component.type.ConsumableComponent;
@@ -40,6 +41,21 @@ public class PirkkoItem extends BlockItem implements PolymerItem {
     @Override
     public ActionResult place(ItemPlacementContext context) {
         return super.place(context);
+    }
+
+    public static String getPirkkoKind(ItemStack stack) {
+        var modelData = stack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
+        if (modelData == null || modelData.strings().isEmpty()) {
+            return "unknown";
+        }
+        return modelData.strings().getFirst();
+    }
+
+    @Override
+    public void postProcessComponents(ItemStack stack) {
+        super.postProcessComponents(stack);
+        var itemNameTranslateable = Text.translatable("item.pirkko." + getPirkkoKind(stack) + "_pirkko");
+        stack.set(DataComponentTypes.ITEM_NAME, itemNameTranslateable);
     }
 
     @Override
