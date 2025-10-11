@@ -32,7 +32,6 @@ public class Pirkko implements ModInitializer {
 
     public static final PirkkoBlock PIRKKO_BLOCK = registerPirkkoBlock("pirkko");
     public static final PirkkoItem PIRKKO_ITEM = registerPirkkoItem("pirkko", PIRKKO_BLOCK);
-
     public static final SoundEvent DEFAULT_PIRKKO_SOUND = registerSoundEvent("pirkko/pirkko", SoundEvents.ENTITY_COD_FLOP);
     public static final StatusEffect PIRKKO_POWER = new PirkkoPowerEffect();
 

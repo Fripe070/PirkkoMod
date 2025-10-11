@@ -91,6 +91,7 @@ public enum PirkkoKind implements StringIdentifiable {
             .findFirst()
             .orElse(null);
     }
+
     @Nullable
     public static PirkkoKind fromId(String id) {
         return Stream.of(values())
