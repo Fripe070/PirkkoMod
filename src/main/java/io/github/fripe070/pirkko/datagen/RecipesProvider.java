@@ -17,7 +17,9 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
 class RecipesProvider extends FabricRecipeProvider {
@@ -31,38 +33,79 @@ class RecipesProvider extends FabricRecipeProvider {
             @Override
             public void generate() {
                 RegistryWrapper.Impl<Item> itemLookup = registries.getOrThrow(RegistryKeys.ITEM);
+                // Base pirkko
                 ShapedRecipeJsonBuilder.create(itemLookup, RecipeCategory.DECORATIONS, Pirkko.PIRKKO_ITEM)
                     .pattern(" t ")
                     .pattern("trt")
                     .pattern(" t ")
                     .input('r', Items.RESIN_BRICK)
                     .input('t', Items.TERRACOTTA)
-                    .group(Identifier.of(Pirkko.MOD_ID, "pirkko").toString())
                     .criterion(hasItem(Items.RESIN_BRICK), conditionsFromItem(Items.RESIN_BRICK))
                     .offerTo(exporter);
 
-                generateDyeingRecipes(itemLookup);
-            }
-
-            private void generateDyeingRecipes(RegistryWrapper.Impl<Item> itemLookup) {
-                String recipeGroup = Identifier.of(Pirkko.MOD_ID, "pirkko_dyeing").toString();
+                // Color pirkko
                 for (var dye : DyeColor.values()) {
                     var kind = PirkkoKind.fromPath("color/" + dye.getId());
                     if (kind == null) {
                         Pirkko.LOGGER.warn("Unknown dye color: {}", dye.getId());
                         continue;
                     }
-
-                    var dyeItem = Registries.ITEM.get(Identifier.ofVanilla(dye.asString() + "_dye"));
-                    String recipeId = Identifier.of(Pirkko.MOD_ID, dye.asString() + "_pirkko").toString();
-
-                    ShapelessRecipeJsonBuilder.create(itemLookup, RecipeCategory.DECORATIONS, PirkkoItem.getStack(kind))
-                        .group(recipeGroup)
-                        .input(Pirkko.PIRKKO_ITEM)
-                        .input(dyeItem)
-                        .criterion(hasItem(Pirkko.PIRKKO_ITEM), conditionsFromItem(Pirkko.PIRKKO_ITEM))
-                        .offerTo(exporter, recipeId);
+                    this.registerDyeRecipe(itemLookup, kind, "pirkko_color", dye);
                 }
+
+                String specialGroup = "pirkko_special";
+                // Pride pirkko
+                registerDyeRecipe(itemLookup, PirkkoKind.PRIDE_AROMANTIC, specialGroup,
+                    DyeColor.GREEN, DyeColor.LIGHT_GRAY, DyeColor.WHITE, DyeColor.BLACK);
+                registerDyeRecipe(itemLookup, PirkkoKind.PRIDE_ASEXUAL, specialGroup,
+                    DyeColor.BLACK, DyeColor.GRAY, DyeColor.WHITE, DyeColor.PURPLE);
+                registerDyeRecipe(itemLookup, PirkkoKind.PRIDE_BISEXUAL, specialGroup,
+                    DyeColor.PINK, DyeColor.PURPLE, DyeColor.BLUE);
+                registerDyeRecipe(itemLookup, PirkkoKind.PRIDE_GAY_M, specialGroup,
+                    DyeColor.GREEN, DyeColor.WHITE, DyeColor.BLUE);
+                registerDyeRecipe(itemLookup, PirkkoKind.PRIDE_GENDER_FLUID, specialGroup,
+                    DyeColor.PINK, DyeColor.WHITE, DyeColor.MAGENTA, DyeColor.BLACK, DyeColor.BLUE);
+                registerDyeRecipe(itemLookup, PirkkoKind.PRIDE_LESBIAN, specialGroup,
+                    DyeColor.ORANGE, DyeColor.WHITE, DyeColor.PINK);
+                registerDyeRecipe(itemLookup, PirkkoKind.PRIDE_NONBINARY, specialGroup,
+                    DyeColor.YELLOW, DyeColor.WHITE, DyeColor.PURPLE, DyeColor.BLACK);
+                registerDyeRecipe(itemLookup, PirkkoKind.PRIDE_RAINBOW, specialGroup,
+                    DyeColor.RED, DyeColor.ORANGE, DyeColor.YELLOW, DyeColor.GREEN, DyeColor.BLUE, DyeColor.PURPLE);
+                registerDyeRecipe(itemLookup, PirkkoKind.PRIDE_TRANSGENDER, specialGroup,
+                    DyeColor.LIGHT_BLUE, DyeColor.PINK, DyeColor.WHITE, DyeColor.PINK, DyeColor.LIGHT_BLUE);
+
+                // Special pirkko
+                this.registerSpecialPirkko(itemLookup, PirkkoKind.LASERVIOLETT, specialGroup,
+                    new Item[]{Items.AMETHYST_SHARD});
+                this.registerSpecialPirkko(itemLookup, PirkkoKind.CERISE, specialGroup,
+                    new Item[]{
+                        Items.PINK_DYE, Items.PINK_DYE, Items.PINK_DYE, Items.PINK_DYE,
+                        Items.PINK_DYE, Items.PINK_DYE, Items.PINK_DYE, Items.PINK_DYE });
+                this.registerSpecialPirkko(itemLookup, PirkkoKind.PHOZ, specialGroup,
+                    new Item[]{Items.LEATHER});
+                this.registerSpecialPirkko(itemLookup, PirkkoKind.KONGLIG, specialGroup,
+                    new Item[]{Items.GOLD_NUGGET});
+                this.registerSpecialPirkko(itemLookup, PirkkoKind.GHOST, specialGroup,
+                    new Item[]{Items.PHANTOM_MEMBRANE});
+            }
+
+            private void registerDyeRecipe(RegistryWrapper.Impl<Item> itemLookup, PirkkoKind kind, @Nullable String group, DyeColor ...dyes) {
+                Item[] dyeItems = Arrays.stream(dyes).map(d -> getDyeItem(d)).toArray(Item[]::new);
+                this.registerSpecialPirkko(itemLookup, kind, group, dyeItems);
+            }
+
+            private void registerSpecialPirkko(RegistryWrapper.Impl<Item> itemLookup, PirkkoKind kind, @Nullable String group, Item[] items) {
+                var builder = ShapelessRecipeJsonBuilder.create(itemLookup, RecipeCategory.DECORATIONS, PirkkoItem.getStack(kind));
+                for (var item : items) builder.input(item);
+                if (group != null) builder.group(Identifier.of(Pirkko.MOD_ID, group).toString());
+                builder
+                    .input(Pirkko.PIRKKO_ITEM)
+                    .criterion(hasItem(Pirkko.PIRKKO_ITEM), conditionsFromItem(Pirkko.PIRKKO_ITEM))
+                    .offerTo(exporter, Identifier.of(Pirkko.MOD_ID, kind.getId()).toString());
+            }
+
+            private static Item getDyeItem(DyeColor color) {
+                return Registries.ITEM.get(Identifier.ofVanilla(color.asString() + "_dye"));
             }
         };
     }
