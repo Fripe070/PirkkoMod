@@ -100,12 +100,19 @@ public class PirkkoBlock extends Block implements BlockWithElementHolder, Polyme
         );
     }
 
-    public void playPirkko(World world, BlockPos pos) {
-        playPirkko(world, pos, 1.1f + (this.random.nextFloat() - 0.5f) * 0.3f);
+    public void playPirkko(BlockState state, World world, BlockPos pos) {
+        playPirkko(state, world, pos, 1.1f + (this.random.nextFloat() - 0.5f) * 0.3f);
     }
 
-    public void playPirkko(World world, BlockPos pos, float pitch) {
-        world.playSound(null, pos, PIRKKO_SOUND, SoundCategory.BLOCKS, 0.8f, pitch);
+    public void playPirkko(BlockState state, World world, BlockPos pos, float pitch) {
+        playPirkko(world, pos, state.get(PIRKKO_KIND), pitch);
+    }
+    public void playPirkko(World world, BlockPos pos, PirkkoKind kind, float pitch) {
+        var sound = kind.pirkkoKindData().GetSound();
+        if (sound == null) {
+            sound = PIRKKO_SOUND;
+        }
+        world.playSound(null, pos, sound, SoundCategory.BLOCKS, 0.8f, pitch);
     }
 
     protected Direction getPlacedDirection(BlockState state) {
@@ -120,7 +127,7 @@ public class PirkkoBlock extends Block implements BlockWithElementHolder, Polyme
     }
 
     protected ActionResult squish(BlockState state, World world, BlockPos pos) {
-        this.playPirkko(world, pos);
+        this.playPirkko(state, world, pos);
         world.setBlockState(pos, state.with(SQUISH_TICK, SQUISH_TICKS));
         world.scheduleBlockTick(pos, this, 1);
         world.emitGameEvent(null, GameEvent.NOTE_BLOCK_PLAY, pos);
@@ -216,7 +223,7 @@ public class PirkkoBlock extends Block implements BlockWithElementHolder, Polyme
     @Override
     public void onBroken(WorldAccess world, BlockPos pos, BlockState state) {
         super.onBroken(world, pos, state);
-        this.playPirkko((World) world, pos);
+        this.playPirkko(state, (World) world, pos);
     }
 
 

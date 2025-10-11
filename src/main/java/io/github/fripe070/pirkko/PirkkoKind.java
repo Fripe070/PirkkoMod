@@ -42,24 +42,41 @@ public enum PirkkoKind implements StringIdentifiable {
     private final int index;
     private final String id;
     private final String friendlyId;
+    private final PirkkoKindData pirkkoKindData;
 
     PirkkoKind(int index, String id) {
         this.index = index;
         this.id = id;
         this.friendlyId = id.replace("/", "_");
+        this.pirkkoKindData = new PirkkoKindData();
+    }
+
+    public static void InitializePirkkoKindData() {
+        GHOST.pirkkoKindData()
+                .setSound(Pirkko.PIRKKO_GHOST_SOUND);
+        PHOZ.pirkkoKindData()
+                .setSound(Pirkko.PIRKKO_PHOZ_SOUND);
+        KONGLIG.pirkkoKindData()
+                .setSound(Pirkko.PIRKKO_KONGLIG_SOUND);
     }
 
     @Override
     public String asString() {
         return friendlyId;
     }
+
     public String realId() {
         return id;
+    }
+
+    public PirkkoKindData pirkkoKindData() {
+        return pirkkoKindData;
     }
 
     public int getIndex() {
         return index;
     }
+
     @Nullable
     public static PirkkoKind fromName(String name) {
         for (PirkkoKind kind : PirkkoKind.values()) {

@@ -9,8 +9,6 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.MapColor;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.item.Item;
@@ -27,7 +25,6 @@ import net.minecraft.util.Rarity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.Optional;
 
 public class Pirkko implements ModInitializer {
@@ -37,7 +34,10 @@ public class Pirkko implements ModInitializer {
     public static final PirkkoBlock PIRKKO_BLOCK = registerPirkkoBlock("pirkko");
     public static final Item DEFAULT_PIRKKO_ITEM = registerPirkkoItem("pirkko", PIRKKO_BLOCK);
 
-    public static final SoundEvent PIRKKO_SOUND = registerSoundEvent("pirkko", SoundEvents.ENTITY_COD_FLOP);
+    public static final SoundEvent PIRKKO_SOUND = registerSoundEvent("pirkko/pirkko", SoundEvents.ENTITY_COD_FLOP);
+    public static final SoundEvent PIRKKO_GHOST_SOUND = registerSoundEvent("pirkko/ghost", SoundEvents.ENTITY_COD_FLOP);
+    public static final SoundEvent PIRKKO_PHOZ_SOUND = registerSoundEvent("pirkko/phoz", SoundEvents.ENTITY_COD_FLOP);
+    public static final SoundEvent PIRKKO_KONGLIG_SOUND = registerSoundEvent("pirkko/konglig", SoundEvents.ENTITY_COD_FLOP);
     public static final StatusEffect PIRKKO_POWER = new PirkkoPowerEffect();
 
     @Override
@@ -46,6 +46,7 @@ public class Pirkko implements ModInitializer {
         PolymerResourcePackUtils.markAsRequired();
 
         Registry.register(Registries.STATUS_EFFECT, Identifier.of(MOD_ID, "pirkko_power"), PIRKKO_POWER);
+        PirkkoKind.InitializePirkkoKindData();
     }
 
     private static PirkkoBlock registerPirkkoBlock(String name) {
