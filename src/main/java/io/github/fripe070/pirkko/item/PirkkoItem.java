@@ -25,10 +25,7 @@ public class PirkkoItem extends BlockItem implements PolymerItem {
 
     public static ItemStack getStack(@NotNull PirkkoKind kind) {
         var stack = Pirkko.PIRKKO_ITEM.getDefaultStack();
-        var oldModelData = stack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
-        if (oldModelData == null) {
-            oldModelData = new CustomModelDataComponent(List.of(), List.of(), List.of(), List.of());
-        }
+        var oldModelData = stack.getOrDefault(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(List.of(), List.of(), List.of(), List.of()));
         stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(
                 oldModelData.floats(),
                 oldModelData.flags(),
@@ -58,6 +55,7 @@ public class PirkkoItem extends BlockItem implements PolymerItem {
     public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipType tooltipType, PacketContext context) {
         var stack = PolymerItem.super.getPolymerItemStack(itemStack, tooltipType, context);
         PirkkoKind kind = getPirkkoKind(stack);
+        stack.set(DataComponentTypes.RARITY, kind.getRarity());
 
         Text translationName = stack.get(DataComponentTypes.ITEM_NAME);
         if (!kind.equals(PirkkoKind.BLANK)) {
@@ -65,10 +63,5 @@ public class PirkkoItem extends BlockItem implements PolymerItem {
         }
         stack.set(DataComponentTypes.ITEM_NAME, translationName);
         return stack;
-    }
-
-    @Override
-    public void modifyClientTooltip(List<Text> tooltip, ItemStack stack, PacketContext context) {
-        PolymerItem.super.modifyClientTooltip(tooltip, stack, context);
     }
 }

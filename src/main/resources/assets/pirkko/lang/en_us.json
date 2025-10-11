@@ -27,5 +27,15 @@
   "block.pirkko.pirkko.color.brown": "Brown Pirkko",
   "block.pirkko.pirkko.color.green": "Green Pirkko",
   "block.pirkko.pirkko.color.red": "Red Pirkko",
-  "block.pirkko.pirkko.color.black": "Black Pirkko"
+  "block.pirkko.pirkko.color.black": "Black Pirkko",
+
+  "block.pirkko.pirkko.pride.aromantic": "Aromantic Pirkko",
+  "block.pirkko.pirkko.pride.asexual":"Asexual Pirkko",
+  "block.pirkko.pirkko.pride.bisexual": "Bisexual Pirkko",
+  "block.pirkko.pirkko.pride.gay_m":"Gay Pirkko",
+  "block.pirkko.pirkko.pride.genderfluid": "Genderfluid Pirkko",
+  "block.pirkko.pirkko.pride.lesbian":"Lesbian Pirkko",
+  "block.pirkko.pirkko.pride.nonbinary": "Nonbinary Pirkko",
+  "block.pirkko.pirkko.pride.rainbow":"Rainbow Pirkko",
+  "block.pirkko.pirkko.pride.transgender": "Transgender Pirkko"
 }

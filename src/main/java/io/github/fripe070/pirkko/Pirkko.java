@@ -21,7 +21,6 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Rarity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,7 @@ public class Pirkko implements ModInitializer {
     public static final PirkkoBlock PIRKKO_BLOCK = registerPirkkoBlock("pirkko");
     public static final PirkkoItem PIRKKO_ITEM = registerPirkkoItem("pirkko", PIRKKO_BLOCK);
 
-    public static final SoundEvent PIRKKO_SOUND = registerSoundEvent("pirkko", SoundEvents.ENTITY_COD_FLOP);
+    public static final SoundEvent DEFAULT_PIRKKO_SOUND = registerSoundEvent("pirkko/pirkko", SoundEvents.ENTITY_COD_FLOP);
     public static final StatusEffect PIRKKO_POWER = new PirkkoPowerEffect();
 
     @Override
@@ -43,6 +42,13 @@ public class Pirkko implements ModInitializer {
         PolymerResourcePackUtils.markAsRequired();
 
         Registry.register(Registries.STATUS_EFFECT, Identifier.of(MOD_ID, "pirkko_power"), PIRKKO_POWER);
+
+        for (PirkkoKind kind : PirkkoKind.values()) {
+            if (!kind.usesCustomSound()) continue;
+            var sound = kind.getSound();
+            Registry.register(Registries.SOUND_EVENT, sound.id(), sound);
+            PolymerSoundEvent.registerOverlay(sound);
+        }
     }
 
     private static PirkkoBlock registerPirkkoBlock(String name) {
@@ -61,8 +67,6 @@ public class Pirkko implements ModInitializer {
         var item = new PirkkoItem(block, new Item.Settings()
             .maxCount(65)
             .fireproof()
-            // TODO: Vary the rarity based on the kind
-            .rarity(Rarity.EPIC)
             .equippableUnswappable(EquipmentSlot.HEAD)
             .registryKey(RegistryKey.of(RegistryKeys.ITEM, registryKey))
             .useBlockPrefixedTranslationKey()

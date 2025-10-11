@@ -50,8 +50,6 @@ import xyz.nucleoid.packettweaker.PacketContext;
 import java.util.List;
 import java.util.Locale;
 
-import static io.github.fripe070.pirkko.Pirkko.PIRKKO_SOUND;
-
 
 public class PirkkoBlock extends Block implements BlockWithElementHolder, PolymerTexturedBlock, Waterloggable {
     public static final MapCodec<PirkkoBlock> CODEC = createCodec(PirkkoBlock::new);
@@ -138,7 +136,7 @@ public class PirkkoBlock extends Block implements BlockWithElementHolder, Polyme
     }
 
     protected ActionResult squish(BlockState state, World world, BlockPos pos) {
-        this.playPirkko(world, pos);
+        this.playPirkko(world, pos, state);
         world.setBlockState(pos, state.with(SQUISH_TICK, SQUISH_TICKS));
         world.scheduleBlockTick(pos, this, 1);
         world.emitGameEvent(null, GameEvent.NOTE_BLOCK_PLAY, pos);
@@ -153,11 +151,11 @@ public class PirkkoBlock extends Block implements BlockWithElementHolder, Polyme
         return squishTick > 0;
     }
 
-    public void playPirkko(World world, BlockPos pos) {
-        this.playPirkko(world, pos, 1.1f + (this.random.nextFloat() - 0.5f) * 0.3f);
+    public void playPirkko(World world, BlockPos pos, BlockState state) {
+        this.playPirkko(world, pos, state, 1.1f + (this.random.nextFloat() - 0.5f) * 0.3f);
     }
-    public void playPirkko(World world, BlockPos pos, float pitch) {
-        world.playSound(null, pos, PIRKKO_SOUND, SoundCategory.BLOCKS, 0.8f, pitch);
+    public void playPirkko(World world, BlockPos pos, BlockState state, float pitch) {
+        world.playSound(null, pos, state.get(KIND).getSound(), SoundCategory.BLOCKS, 0.8f, pitch);
     }
 
     protected BlockState getFloorBlock(BlockState state, World world, BlockPos pos) {
@@ -207,7 +205,7 @@ public class PirkkoBlock extends Block implements BlockWithElementHolder, Polyme
     @Override
     public void onBroken(WorldAccess world, BlockPos pos, BlockState state) {
         super.onBroken(world, pos, state);
-        this.playPirkko((World) world, pos);
+        this.playPirkko((World) world, pos, state);
     }
 
     @Override

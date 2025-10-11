@@ -1,10 +1,28 @@
 {
-  "pirkko": {
+  "pirkko/pirkko": {
     "subtitle": "sound.pirkko.pirkko",
     "sounds": [
       "pirkko:pirkko",
       "pirkko:pirkko2",
       "pirkko:pirkko3",
       "pirkko:pirkko4"]
+  },
+  "pirkko/konglig": {
+    "subtitle": "sound.pirkko.konglig",
+    "sounds": [
+      "pirkko:konglig"
+    ]
+  },
+  "pirkko/phoz": {
+    "subtitle": "sound.pirkko.phoz",
+    "sounds": [
+      "pirkko:phoz"
+    ]
+  },
+  "pirkko/ghost": {
+    "subtitle": "sound.pirkko.ghost",
+    "sounds": [
+      "pirkko:ghost"
+    ]
   }
 }
