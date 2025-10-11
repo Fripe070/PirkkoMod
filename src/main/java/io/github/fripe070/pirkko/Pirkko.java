@@ -64,7 +64,7 @@ public class Pirkko implements ModInitializer {
     private static PirkkoItem registerPirkkoItem(String name, PirkkoBlock block) {
         var registryKey = Identifier.of(MOD_ID, name);
         var item = new PirkkoItem(block, new Item.Settings()
-            .maxCount(65)
+            .maxCount(63)
             .fireproof()
             .equippableUnswappable(EquipmentSlot.HEAD)
             .registryKey(RegistryKey.of(RegistryKeys.ITEM, registryKey))

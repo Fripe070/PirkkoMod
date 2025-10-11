@@ -78,13 +78,11 @@ class RecipesProvider extends FabricRecipeProvider {
                 this.registerSpecialPirkko(itemLookup, PirkkoKind.LASERVIOLETT, specialGroup,
                     new Item[]{Items.AMETHYST_SHARD});
                 this.registerSpecialPirkko(itemLookup, PirkkoKind.CERISE, specialGroup,
-                    new Item[]{
-                        Items.PINK_DYE, Items.PINK_DYE, Items.PINK_DYE, Items.PINK_DYE,
-                        Items.PINK_DYE, Items.PINK_DYE, Items.PINK_DYE, Items.PINK_DYE });
+                    new Item[]{Items.PORKCHOP});
                 this.registerSpecialPirkko(itemLookup, PirkkoKind.PHOZ, specialGroup,
-                    new Item[]{Items.LEATHER});
+                    new Item[]{Items.LEATHER, Items.POISONOUS_POTATO});
                 this.registerSpecialPirkko(itemLookup, PirkkoKind.KONGLIG, specialGroup,
-                    new Item[]{Items.GOLD_NUGGET});
+                    new Item[]{Items.REDSTONE_TORCH, Items.GOLDEN_HELMET});
                 this.registerSpecialPirkko(itemLookup, PirkkoKind.GHOST, specialGroup,
                     new Item[]{Items.PHANTOM_MEMBRANE});
             }

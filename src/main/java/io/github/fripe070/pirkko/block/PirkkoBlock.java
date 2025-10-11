@@ -119,10 +119,10 @@ public class PirkkoBlock extends Block implements BlockWithElementHolder, Polyme
             @Nullable PlayerEntity player = ctx.getPlayer();
             Vec3d playerLook = player != null ? player.getRotationVector() : new Vec3d(0, -1, 0);
 
-            Vector3f perpToSide = side.getUnitVector().cross(Direction.UP.getUnitVector());
+            Vector3f perpToSide = side.getUnitVector().cross(Direction.DOWN.getUnitVector());
             double angle = Math.atan2(playerLook.getY(), perpToSide.dot(playerLook.toVector3f()));
 
-            blockState = blockState.with(ROTATION, RotationPropertyHelper.fromYaw((float) Math.toDegrees(angle) - 90));
+            blockState = blockState.with(ROTATION, RotationPropertyHelper.fromYaw((float) Math.toDegrees(angle) + 90));
         }
 
         if (!blockState.canPlaceAt(ctx.getWorld(), ctx.getBlockPos()))
