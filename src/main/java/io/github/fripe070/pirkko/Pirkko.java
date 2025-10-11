@@ -1,7 +1,5 @@
 package io.github.fripe070.pirkko;
 
-import eu.pb4.polymer.core.api.item.PolymerBlockItem;
-import eu.pb4.polymer.core.api.item.SimplePolymerItem;
 import eu.pb4.polymer.core.api.other.PolymerSoundEvent;
 import eu.pb4.polymer.rsm.api.RegistrySyncUtils;
 import io.github.fripe070.pirkko.block.PirkkoBlock;
@@ -17,7 +15,6 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
-import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
