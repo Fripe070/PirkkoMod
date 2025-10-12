@@ -40,7 +40,7 @@ public class Pirkko implements ModInitializer {
         PolymerResourcePackUtils.addModAssets(MOD_ID);
         PolymerResourcePackUtils.markAsRequired();
 
-        Registry.register(Registries.STATUS_EFFECT, Identifier.of(MOD_ID, "pirkko_power"), PIRKKO_POWER);
+        Registry.register(Registries.STATUS_EFFECT, id("pirkko_power"), PIRKKO_POWER);
 
         for (PirkkoKind kind : PirkkoKind.values()) {
             if (!kind.usesCustomSound()) continue;
@@ -50,8 +50,12 @@ public class Pirkko implements ModInitializer {
         }
     }
 
+    public static Identifier id(String path) {
+        return Identifier.of(MOD_ID, path);
+    }
+
     private static PirkkoBlock registerPirkkoBlock(String name) {
-        var registryKey = Identifier.of(MOD_ID, name);
+        var registryKey = id(name);
         var block = new PirkkoBlock(AbstractBlock.Settings.create()
             .mapColor(MapColor.BRIGHT_RED)
             .breakInstantly()
@@ -62,7 +66,7 @@ public class Pirkko implements ModInitializer {
     }
 
     private static PirkkoItem registerPirkkoItem(String name, PirkkoBlock block) {
-        var registryKey = Identifier.of(MOD_ID, name);
+        var registryKey = id(name);
         var item = new PirkkoItem(block, new Item.Settings()
             .maxCount(63)
             .fireproof()
@@ -70,7 +74,7 @@ public class Pirkko implements ModInitializer {
             .registryKey(RegistryKey.of(RegistryKeys.ITEM, registryKey))
             .useBlockPrefixedTranslationKey()
         );
-        Registry.register(Registries.ITEM, Identifier.of(MOD_ID, name), item);
+        Registry.register(Registries.ITEM, id(name), item);
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> {
             for (PirkkoKind kind : PirkkoKind.values()) {
                 entries.add(PirkkoItem.getStack(kind));
@@ -80,7 +84,7 @@ public class Pirkko implements ModInitializer {
     }
 
     private static SoundEvent registerSoundEvent(String name, SoundEvent soundEvent) {
-        Identifier id = Identifier.of(MOD_ID, name);
+        Identifier id = id(name);
         var event = Registry.register(Registries.SOUND_EVENT, id, new SoundEvent(id, Optional.empty()));
         PolymerSoundEvent.registerOverlay(event, soundEvent);
         RegistrySyncUtils.setServerEntry(Registries.SOUND_EVENT, event);

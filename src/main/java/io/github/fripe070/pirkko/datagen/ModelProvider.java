@@ -4,11 +4,16 @@ import io.github.fripe070.pirkko.Pirkko;
 import io.github.fripe070.pirkko.PirkkoKind;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.minecraft.client.data.*;
+import net.minecraft.client.data.BlockStateModelGenerator;
+import net.minecraft.client.data.ItemModelGenerator;
+import net.minecraft.client.data.ItemModels;
+import net.minecraft.client.data.Model;
+import net.minecraft.client.data.ModelIds;
+import net.minecraft.client.data.TextureKey;
+import net.minecraft.client.data.TextureMap;
 import net.minecraft.client.render.item.model.ItemModel;
 import net.minecraft.client.render.item.model.SelectItemModel;
 import net.minecraft.client.render.item.property.select.CustomModelDataStringProperty;
-import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +26,7 @@ public class ModelProvider extends FabricModelProvider {
 
     @Override
     public void generateItemModels(ItemModelGenerator itemModelGenerator) {
-        var blankPirkkoId = Identifier.of(Pirkko.MOD_ID, "item/pirkko/base");
+        var blankPirkkoId = Pirkko.id("item/pirkko/base");
         var pirkkoModel = new Model(Optional.of(blankPirkkoId), Optional.empty(), TextureKey.TEXTURE);
 
         List<SelectItemModel.SwitchCase<String>> pirkkoModels = new ArrayList<>();

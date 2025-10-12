@@ -1,7 +1,6 @@
 package io.github.fripe070.pirkko;
 
 import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 import net.minecraft.util.StringIdentifiable;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +54,7 @@ public enum PirkkoKind implements StringIdentifiable {
     PirkkoKind(String assetPath, Rarity rarity, boolean useCustomSound) {
         this.assetPath = assetPath;
         this.rarity = rarity;
-        var sound = SoundEvent.of(Identifier.of(Pirkko.MOD_ID, "pirkko/" + this.getPath()));
+        var sound = SoundEvent.of(Pirkko.id("pirkko/" + this.getPath()));
         this.soundEvent = useCustomSound ? sound : null;
     }
 

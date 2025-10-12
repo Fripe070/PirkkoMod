@@ -95,11 +95,11 @@ class RecipesProvider extends FabricRecipeProvider {
             private void registerSpecialPirkko(RegistryWrapper.Impl<Item> itemLookup, PirkkoKind kind, @Nullable String group, Item[] items) {
                 var builder = ShapelessRecipeJsonBuilder.create(itemLookup, RecipeCategory.DECORATIONS, PirkkoItem.getStack(kind));
                 for (var item : items) builder.input(item);
-                if (group != null) builder.group(Identifier.of(Pirkko.MOD_ID, group).toString());
+                if (group != null) builder.group(Pirkko.id(group).toString());
                 builder
                     .input(Pirkko.PIRKKO_ITEM)
                     .criterion(hasItem(Pirkko.PIRKKO_ITEM), conditionsFromItem(Pirkko.PIRKKO_ITEM))
-                    .offerTo(exporter, Identifier.of(Pirkko.MOD_ID, kind.getId()).toString());
+                    .offerTo(exporter, Pirkko.id(kind.getId()).toString());
             }
 
             private static Item getDyeItem(DyeColor color) {
