@@ -188,11 +188,12 @@ public class PirkkoBlock extends Block implements BlockWithElementHolder, Polyme
 
     @Override
     protected boolean hasComparatorOutput(BlockState state) {
+        super.hasComparatorOutput(state);
         return true;
     }
 
     @Override
-    protected int getComparatorOutput(BlockState state, World world, BlockPos pos) {
+    protected int getComparatorOutput(BlockState state, World world, BlockPos pos, Direction direction) {
         return Math.max(0, Math.min(15, getSquishTicks(state) * 15 / (SQUISH_TICKS - 1)));
     }
 
@@ -295,8 +296,6 @@ public class PirkkoBlock extends Block implements BlockWithElementHolder, Polyme
             } else {
                 this.display.setTransformation(this.baseTransform);
             }
-
-            //this.debugText.setText(Text.of("Squish: %d/%d".formatted(squishTick, SQUISH_TICKS)));
         }
     }
 }

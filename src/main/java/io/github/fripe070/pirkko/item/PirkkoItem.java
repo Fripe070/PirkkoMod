@@ -86,7 +86,7 @@ public class PirkkoItem extends BlockItem implements PolymerItem {
             if (receiverStack.isEmpty()) continue;
             if (!receiverStack.isOf(pirkkoStack.getItem())) continue;
 
-            target.getWorld().playSound(target, user.getBlockPos(), SoundEvents.BLOCK_VAULT_CLOSE_SHUTTER, SoundCategory.PLAYERS, 0.4F, 1);
+            user.getEntityWorld().playSound(user, user.getBlockPos(), SoundEvents.BLOCK_VAULT_CLOSE_SHUTTER, SoundCategory.PLAYERS, 0.4F, 1);
             return ActionResult.FAIL;
         }
 
@@ -95,7 +95,7 @@ public class PirkkoItem extends BlockItem implements PolymerItem {
             if (!user.getAbilities().creativeMode) {
                 pirkkoStack.decrement(1);
             }
-            target.getWorld().playSound(target, user.getBlockPos(), kind.getSound(), SoundCategory.PLAYERS, 0.1F, 1);
+            user.getEntityWorld().playSound(user, user.getBlockPos(), kind.getSound(), SoundCategory.PLAYERS, 0.1F, 1);
         }
 
         return ActionResult.CONSUME;
