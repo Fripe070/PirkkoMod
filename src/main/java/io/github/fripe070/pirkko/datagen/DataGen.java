@@ -10,5 +10,6 @@ public class DataGen implements DataGeneratorEntrypoint {
         pack.addProvider(LootTableProvider::new);
         pack.addProvider(RecipesProvider::new);
         pack.addProvider(ModelProvider::new);
+        pack.addProvider(AdvancementProvider::new);
     }
 }

@@ -1,13 +1,17 @@
 package io.github.fripe070.pirkko;
 
 import eu.pb4.polymer.core.api.other.PolymerSoundEvent;
+import eu.pb4.polymer.core.api.other.PolymerStat;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.polymer.rsm.api.RegistrySyncUtils;
 import io.github.fripe070.pirkko.block.PirkkoBlock;
+import io.github.fripe070.pirkko.criterion.PirkkoClickCriterion;
+import io.github.fripe070.pirkko.criterion.PirkkoTransferCriterion;
 import io.github.fripe070.pirkko.effect.PirkkoPowerEffect;
 import io.github.fripe070.pirkko.item.PirkkoItem;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.MapColor;
 import net.minecraft.entity.EquipmentSlot;
@@ -20,6 +24,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.stat.StatFormatter;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +39,12 @@ public class Pirkko implements ModInitializer {
     public static final PirkkoItem PIRKKO_ITEM = registerPirkkoItem("pirkko", PIRKKO_BLOCK);
     public static final SoundEvent DEFAULT_PIRKKO_SOUND = registerSoundEvent("pirkko/pirkko", SoundEvents.ENTITY_COD_FLOP);
     public static final StatusEffect PIRKKO_POWER = new PirkkoPowerEffect();
+
+    public static final Identifier PIRKKO_CLICK_STAT = PolymerStat.registerStat(id("interact_with_pirkko"), StatFormatter.DEFAULT);
+    public static final Identifier PIRKKO_TRANSFER_STAT = PolymerStat.registerStat(id("transfer_pirkko"), StatFormatter.DEFAULT);
+
+    public static final PirkkoClickCriterion CLICK_PIRKKO = Criteria.register(id("click_pirkko").toString(), new PirkkoClickCriterion());
+    public static final PirkkoTransferCriterion TRANSFER_PIRKKO = Criteria.register(id("transfer_pirkko").toString(), new PirkkoTransferCriterion());
 
     @Override
     public void onInitialize() {

@@ -13,8 +13,10 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -85,6 +87,7 @@ public class PirkkoItem extends BlockItem implements PolymerItem {
             if (!receiverStack.isOf(pirkkoStack.getItem())) continue;
 
             user.getEntityWorld().playSound(user, user.getBlockPos(), SoundEvents.BLOCK_VAULT_CLOSE_SHUTTER, SoundCategory.PLAYERS, 0.4F, 1);
+            target.sendMessage(Text.translatable("message.pirkko.already_has"), true);
             return ActionResult.FAIL;
         }
 
@@ -94,6 +97,11 @@ public class PirkkoItem extends BlockItem implements PolymerItem {
                 pirkkoStack.decrement(1);
             }
             user.getEntityWorld().playSound(user, user.getBlockPos(), kind.getSound(), SoundCategory.PLAYERS, 0.1F, 1);
+            target.sendMessage(Text.translatable("message.pirkko.received"), true);
+
+            user.incrementStat(Pirkko.PIRKKO_TRANSFER_STAT);
+            Pirkko.TRANSFER_PIRKKO.trigger((ServerPlayerEntity) user,
+                ((ServerPlayerEntity) user).getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(Pirkko.PIRKKO_TRANSFER_STAT)));
         }
 
         return ActionResult.CONSUME;

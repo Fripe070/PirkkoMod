@@ -37,5 +37,34 @@
   "block.pirkko.pirkko.pride.lesbian":"Lesbian Pirkko",
   "block.pirkko.pirkko.pride.nonbinary": "Nonbinary Pirkko",
   "block.pirkko.pirkko.pride.rainbow":"Rainbow Pirkko",
-  "block.pirkko.pirkko.pride.transgender": "Transgender Pirkko"
+  "block.pirkko.pirkko.pride.transgender": "Transgender Pirkko",
+
+  "message.pirkko.received": "You feel a strange presence in your inventory...",
+  "message.pirkko.already_has": "Your pirkko blocked an intruder.",
+
+  "advancements.pirkko.click_1_pirkko.title": "First Pirkko",
+  "advancements.pirkko.click_1_pirkko.description": "CLick on a Pirkko",
+  "advancements.pirkko.click_100_pirkko.title": "Pirkko Enthusiast",
+  "advancements.pirkko.click_100_pirkko.description": "Click on 100 Pirkko",
+  "advancements.pirkko.click_1000_pirkko.title": "Pirkko Aficionado",
+  "advancements.pirkko.click_1000_pirkko.description": "Click on 1,000 Pirkko",
+  "advancements.pirkko.click_5000_pirkko.title": "Pirkko Frenzy",
+  "advancements.pirkko.click_5000_pirkko.description": "Click on 5,000 Pirkko",
+  "advancements.pirkko.click_10000_pirkko.title": "Pirkko Maniac",
+  "advancements.pirkko.click_10000_pirkko.description": "Click on 10,000 Pirkko",
+  "advancements.pirkko.click_100000_pirkko.title": "Pirkko Overlord",
+  "advancements.pirkko.click_100000_pirkko.description": "Click on 100,000 Pirkko",
+  "advancements.pirkko.click_1000000_pirkko.title": "Pirkko God",
+  "advancements.pirkko.click_1000000_pirkko.description": "Click on 1,000,000 Pirkko",
+
+  "advancements.pirkko.transfer_1_pirkko.title": "Pirkko Gifter",
+  "advancements.pirkko.transfer_1_pirkko.description": "\"Gift\" a Pirkko",
+  "advancements.pirkko.transfer_5_pirkko.title": "Pirkko Dealer",
+  "advancements.pirkko.transfer_5_pirkko.description": "\"Gift\" 5 Pirkko",
+  "advancements.pirkko.transfer_10_pirkko.title": "Pirkko Santa",
+  "advancements.pirkko.transfer_10_pirkko.description": "\"Gift\" 10 Pirkko",
+  "advancements.pirkko.transfer_20_pirkko.title": "Pirkko Philanthropist",
+  "advancements.pirkko.transfer_20_pirkko.description": "\"Gift\" 20 Pirkko",
+  "advancements.pirkko.transfer_50_pirkko.title": "Pirkko Manufacturer",
+  "advancements.pirkko.transfer_50_pirkko.description": "\"Gift\" 50 Pirkko"
 }

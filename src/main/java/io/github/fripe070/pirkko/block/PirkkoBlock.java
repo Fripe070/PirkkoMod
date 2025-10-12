@@ -8,6 +8,7 @@ import eu.pb4.polymer.virtualentity.api.BlockWithElementHolder;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.BlockBoundAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
+import io.github.fripe070.pirkko.Pirkko;
 import io.github.fripe070.pirkko.PirkkoKind;
 import io.github.fripe070.pirkko.item.PirkkoItem;
 import net.minecraft.block.AbstractBlock;
@@ -22,8 +23,10 @@ import net.minecraft.item.ItemDisplayContext;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.loot.context.LootWorldContext;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.stat.Stats;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
@@ -132,6 +135,10 @@ public class PirkkoBlock extends Block implements BlockWithElementHolder, Polyme
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
+        player.incrementStat(Pirkko.PIRKKO_CLICK_STAT);
+        Pirkko.CLICK_PIRKKO.trigger((ServerPlayerEntity) player,
+            ((ServerPlayerEntity) player).getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(Pirkko.PIRKKO_CLICK_STAT)));
+
         return squish(state, world, pos);
     }
 
