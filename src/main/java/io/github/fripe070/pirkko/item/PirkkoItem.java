@@ -6,12 +6,20 @@ import io.github.fripe070.pirkko.PirkkoKind;
 import net.minecraft.block.Block;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
 import org.jetbrains.annotations.NotNull;
 import xyz.nucleoid.packettweaker.PacketContext;
 
@@ -63,5 +71,33 @@ public class PirkkoItem extends BlockItem implements PolymerItem {
         }
         stack.set(DataComponentTypes.ITEM_NAME, translationName);
         return stack;
+    }
+
+    @Override
+    public ActionResult useOnEntity(ItemStack pirkkoStack, PlayerEntity user, LivingEntity entity, Hand hand) {
+        ActionResult result = super.useOnEntity(pirkkoStack, user, entity, hand);
+        if (result != ActionResult.PASS) return result;
+
+        if (!(entity instanceof PlayerEntity target)) return result;
+
+        PirkkoKind kind = getPirkkoKind(pirkkoStack);
+        var inventory = target.getInventory();
+        for (ItemStack receiverStack : inventory) {
+            if (receiverStack.isEmpty()) continue;
+            if (!receiverStack.isOf(pirkkoStack.getItem())) continue;
+
+            target.getWorld().playSound(target, user.getBlockPos(), SoundEvents.BLOCK_VAULT_CLOSE_SHUTTER, SoundCategory.PLAYERS, 0.4F, 1);
+            return ActionResult.FAIL;
+        }
+
+        boolean insertSuccess = inventory.insertStack(pirkkoStack.copyWithCount(1));
+        if (insertSuccess) {
+            if (!user.getAbilities().creativeMode) {
+                pirkkoStack.decrement(1);
+            }
+            target.getWorld().playSound(target, user.getBlockPos(), kind.getSound(), SoundCategory.PLAYERS, 0.1F, 1);
+        }
+
+        return ActionResult.CONSUME;
     }
 }
