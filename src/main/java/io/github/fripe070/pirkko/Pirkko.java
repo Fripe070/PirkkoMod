@@ -66,7 +66,7 @@ public class Pirkko implements ModInitializer {
         PolymerResourcePackUtils.addModAssets(MOD_ID);
         PolymerResourcePackUtils.markAsRequired();
 
-        PolymerItemGroupUtils.registerPolymerItemGroup(id("item_group"), ITEM_GROUP);
+        PolymerItemGroupUtils.registerPolymerItemGroup(id("pirkko_group"), ITEM_GROUP);
         Registry.register(Registries.STATUS_EFFECT, id("pirkko_power"), PIRKKO_POWER);
 
         for (PirkkoKind kind : PirkkoKind.values()) {
