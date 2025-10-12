@@ -42,6 +42,9 @@
   "message.pirkko.received": "Methinks a strange presence doth reside within thy fardel...",
   "message.pirkko.already_has": "Thy pirkko hath turn'd back the interloper.",
 
+  "advancements.pirkko.root.title": "Pirkko",
+  "advancements.pirkko.root.description": "Uncover the marvels of Pirkko",
+
   "advancements.pirkko.click_1_pirkko.title": "The Maiden Pirkko",
   "advancements.pirkko.click_1_pirkko.description": "Strike thou a Pirkko",
   "advancements.pirkko.click_100_pirkko.title": "Pirkko's Zealot",

@@ -2,11 +2,11 @@
   "effect.pirkko.pirkko_power": "Pirkko Power",
 
   "sound.pirkko.pirkko": "Pirkko pirkks",
-
+  "itemgroup.pirkko": "Pirkko",
   "block.pirkko.pirkko": "Pirkko",
 
   "block.pirkko.pirkko.unknown": "Unknown Pirkko",
-  "block.pirkko.pirkko.cerise": "Cerise Pirkko",
+  "block.pirkko.pirkko.cerise": "Really Pink Pirkko",
   "block.pirkko.pirkko.ghost": "Ghost Pirkko",
   "block.pirkko.pirkko.konglig": "Konglig Pirkko",
   "block.pirkko.pirkko.laserviolett": "Laserviolett Pirkko",
@@ -41,6 +41,9 @@
 
   "message.pirkko.received": "You feel a strange presence in your inventory...",
   "message.pirkko.already_has": "Your pirkko blocked an intruder.",
+
+  "advancements.pirkko.root.title": "Pirkko",
+  "advancements.pirkko.root.description": "Discover the wonders of Pirkko",
 
   "advancements.pirkko.click_1_pirkko.title": "First Pirkko",
   "advancements.pirkko.click_1_pirkko.description": "CLick on a Pirkko",

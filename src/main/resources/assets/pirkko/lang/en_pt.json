@@ -42,6 +42,9 @@
   "message.pirkko.received": "Ye feel a fishy feelin' in yer loot bag...",
   "message.pirkko.already_has": "Yer Pirkko blocked a scurvy dog.",
 
+  "advancements.pirkko.root.title": "Pirkko",
+  "advancements.pirkko.root.description": "Discover th' wonders o' Pirkko",
+
   "advancements.pirkko.click_1_pirkko.title": "New Recruit",
   "advancements.pirkko.click_1_pirkko.description": "Poke a Pirkko",
   "advancements.pirkko.click_100_pirkko.title": "Pirate in Training",

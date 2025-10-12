@@ -8,8 +8,7 @@ import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.advancement.AdvancementFrame;
-import net.minecraft.advancement.criterion.InventoryChangedCriterion;
-import net.minecraft.item.Items;
+import net.minecraft.advancement.criterion.*;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -25,12 +24,28 @@ public class AdvancementProvider extends FabricAdvancementProvider {
 
     @Override
     public void generateAdvancement(RegistryWrapper.WrapperLookup wrapperLookup, Consumer<AdvancementEntry> consumer) {
-        this.registerClickGoals(consumer);
-        this.registerTransferGoals(consumer);
+        AdvancementEntry root = Advancement.Builder.create().build(Identifier.ofVanilla("adventure/root"));
+        AdvancementEntry pirkkoRoot = Advancement.Builder.create()
+            .parent(root)
+            .display(
+                Pirkko.PIRKKO_ITEM,
+                Text.translatable("advancements.pirkko.root.title"),
+                Text.translatable("advancements.pirkko.root.description"),
+                Identifier.ofVanilla("textures/gui/advancements/block/red_terracotta.png"),
+                AdvancementFrame.TASK,
+                true,
+                true,
+                false
+            )
+            .criterion("obtained_pirkko", InventoryChangedCriterion.Conditions.items(Pirkko.PIRKKO_ITEM))
+            .build(consumer, Pirkko.id("root").toString());
+
+        this.registerClickGoals(consumer, pirkkoRoot);
+        this.registerTransferGoals(consumer, pirkkoRoot);
     }
-    private void registerClickGoals(Consumer<AdvancementEntry> consumer)         {
+    private void registerClickGoals(Consumer<AdvancementEntry> consumer, AdvancementEntry root) {
         int[] clickGoals = {1, 100, 1_000, 5_000, 10_000, 100_000, 1_000_000};
-        AdvancementEntry pirkkoClickParent = Advancement.Builder.create().build(Identifier.ofVanilla("adventure/root"));
+        AdvancementEntry pirkkoClickParent = root;
         for (int goal : clickGoals) {
             AdvancementFrame frame = AdvancementFrame.TASK;
             if (goal >= 1_000) frame = AdvancementFrame.GOAL;
@@ -53,9 +68,9 @@ public class AdvancementProvider extends FabricAdvancementProvider {
                 .build(consumer, Pirkko.id("click_" + goal + "_pirkko").toString());
         }
     }
-    private void registerTransferGoals(Consumer<AdvancementEntry> consumer)         {
+    private void registerTransferGoals(Consumer<AdvancementEntry> consumer, AdvancementEntry root) {
         int[] transferGoals = {1, 5, 10, 20, 50};
-        AdvancementEntry pirkkoTransferParent = Advancement.Builder.create().build(Identifier.ofVanilla("adventure/root"));
+        AdvancementEntry pirkkoTransferParent = root;
         for (int goal : transferGoals) {
             AdvancementFrame frame = AdvancementFrame.TASK;
             if (goal >= 10) frame = AdvancementFrame.GOAL;
@@ -72,10 +87,9 @@ public class AdvancementProvider extends FabricAdvancementProvider {
                     goal > 5,
                     false
                 )
-                .criterion("root", InventoryChangedCriterion.Conditions.items(Items.TRIAL_KEY))
                 .criterion("transferred_" + goal + "_pirkko", Pirkko.TRANSFER_PIRKKO.create(
                     new PirkkoTransferCriterion.Conditions(Optional.empty(), goal)))
-                .build(consumer, Pirkko.id("click_" + goal + "_pirkko").toString());
+                .build(consumer, Pirkko.id("transferred_" + goal + "_pirkko").toString());
         }
     }
 }

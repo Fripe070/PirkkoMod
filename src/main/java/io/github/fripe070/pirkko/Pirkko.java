@@ -1,5 +1,6 @@
 package io.github.fripe070.pirkko;
 
+import eu.pb4.polymer.core.api.item.PolymerItemGroupUtils;
 import eu.pb4.polymer.core.api.other.PolymerSoundEvent;
 import eu.pb4.polymer.core.api.other.PolymerStat;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
@@ -17,7 +18,9 @@ import net.minecraft.block.MapColor;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemGroups;
+import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -25,10 +28,12 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.stat.StatFormatter;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 public class Pirkko implements ModInitializer {
@@ -37,6 +42,16 @@ public class Pirkko implements ModInitializer {
 
     public static final PirkkoBlock PIRKKO_BLOCK = registerPirkkoBlock("pirkko");
     public static final PirkkoItem PIRKKO_ITEM = registerPirkkoItem("pirkko", PIRKKO_BLOCK);
+
+    public static final ItemGroup ITEM_GROUP = PolymerItemGroupUtils.builder()
+        .displayName(Text.translatable("itemgroup.pirkko"))
+        .icon(() -> new ItemStack(PIRKKO_ITEM))
+        .entries((context, entries) -> {
+            for (PirkkoKind kind : PirkkoKind.values())
+                entries.add(PirkkoItem.getStack(kind));
+        })
+        .build();
+
     public static final SoundEvent DEFAULT_PIRKKO_SOUND = registerSoundEvent("pirkko/pirkko", SoundEvents.ENTITY_COD_FLOP);
     public static final StatusEffect PIRKKO_POWER = new PirkkoPowerEffect();
 
@@ -51,6 +66,7 @@ public class Pirkko implements ModInitializer {
         PolymerResourcePackUtils.addModAssets(MOD_ID);
         PolymerResourcePackUtils.markAsRequired();
 
+        PolymerItemGroupUtils.registerPolymerItemGroup(id("item_group"), ITEM_GROUP);
         Registry.register(Registries.STATUS_EFFECT, id("pirkko_power"), PIRKKO_POWER);
 
         for (PirkkoKind kind : PirkkoKind.values()) {
@@ -86,11 +102,6 @@ public class Pirkko implements ModInitializer {
             .useBlockPrefixedTranslationKey()
         );
         Registry.register(Registries.ITEM, id(name), item);
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> {
-            for (PirkkoKind kind : PirkkoKind.values()) {
-                entries.add(PirkkoItem.getStack(kind));
-            }
-        });
         return item;
     }
 
