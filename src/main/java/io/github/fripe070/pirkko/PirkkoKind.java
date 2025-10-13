@@ -43,8 +43,8 @@ public enum PirkkoKind implements StringIdentifiable {
     PHOZ("phoz", Rarity.RARE, true, false),
     KONGLIG("konglig", Rarity.RARE, true, false),
     GHOST("ghost", Rarity.RARE, true, false),
-    RED_MUSHROOM("red_mushroom", Rarity.RARE, true, true),
-    BROWN_MUSHROOM("brown_mushroom", Rarity.RARE, true, true);
+    RED_MUSHROOM("red_mushroom", Rarity.RARE, false, true),
+    BROWN_MUSHROOM("brown_mushroom", Rarity.RARE, false, true);
 
     private final String assetPath;
     private final Rarity rarity;
