@@ -42,7 +42,7 @@
   "block.pirkko.pirkko.pride.transgender": "Transgender Pirkko",
 
   "message.pirkko.received": "You feel a strange presence in your inventory...",
-  "message.pirkko.already_has": "Your pirkko blocked an intruder.",
+  "message.pirkko.already_have": "They already have a pirkko of this kind.",
 
   "advancements.pirkko.root.title": "Pirkko",
   "advancements.pirkko.root.description": "Discover the wonders of Pirkko",

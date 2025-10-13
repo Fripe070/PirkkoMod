@@ -21,6 +21,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.List;
@@ -47,7 +48,10 @@ public class PirkkoItem extends BlockItem implements PolymerItem {
         return Items.TRIAL_KEY;
     }
 
-    public static @NotNull PirkkoKind getPirkkoKind(ItemStack stack) {
+    public static @Nullable PirkkoKind getPirkkoKind(ItemStack stack) {
+        if (stack.isEmpty() || !stack.isOf(Pirkko.PIRKKO_ITEM)) {
+            return null;
+        }
         var modelData = stack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
         if (modelData == null || modelData.strings().isEmpty()) {
             return PirkkoKind.BLANK;
@@ -62,7 +66,8 @@ public class PirkkoItem extends BlockItem implements PolymerItem {
     @Override
     public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipType tooltipType, PacketContext context) {
         var stack = PolymerItem.super.getPolymerItemStack(itemStack, tooltipType, context);
-        PirkkoKind kind = getPirkkoKind(stack);
+        PirkkoKind kind = getPirkkoKind(itemStack);
+        if (kind == null) return stack; // Should never happen
         stack.set(DataComponentTypes.RARITY, kind.getRarity());
 
         Text translationName = stack.get(DataComponentTypes.ITEM_NAME);
@@ -77,17 +82,20 @@ public class PirkkoItem extends BlockItem implements PolymerItem {
     public ActionResult useOnEntity(ItemStack pirkkoStack, PlayerEntity user, LivingEntity entity, Hand hand) {
         ActionResult result = super.useOnEntity(pirkkoStack, user, entity, hand);
         if (result != ActionResult.PASS) return result;
-
         if (!(entity instanceof PlayerEntity target)) return result;
 
         PirkkoKind kind = getPirkkoKind(pirkkoStack);
+        if (kind == null) return ActionResult.PASS;
+        String kindTransformed = kindTransform(kind);
+
         var inventory = target.getInventory();
-        for (ItemStack receiverStack : inventory) {
-            if (receiverStack.isEmpty()) continue;
-            if (!receiverStack.isOf(pirkkoStack.getItem())) continue;
+        for (ItemStack slotStack : inventory) {
+            PirkkoKind slotKind = getPirkkoKind(slotStack);
+            if (slotKind == null) continue; // Not a Pirkko
+            if (!kindTransformed.equals(kindTransform(slotKind))) continue; // Different kind of pirkko
 
             user.getEntityWorld().playSound(user, user.getBlockPos(), SoundEvents.BLOCK_VAULT_CLOSE_SHUTTER, SoundCategory.PLAYERS, 0.4F, 1);
-            target.sendMessage(Text.translatable("message.pirkko.already_has"), true);
+            user.sendMessage(Text.translatable("message.pirkko.already_have"), true);
             return ActionResult.FAIL;
         }
 
@@ -96,7 +104,7 @@ public class PirkkoItem extends BlockItem implements PolymerItem {
             if (!user.getAbilities().creativeMode) {
                 pirkkoStack.decrement(1);
             }
-            user.getEntityWorld().playSound(user, user.getBlockPos(), kind.getSound(), SoundCategory.PLAYERS, 0.1F, 1);
+            user.getEntityWorld().playSound(null, user.getBlockPos(), kind.getSound(), SoundCategory.PLAYERS, 0.1F, 1);
             target.sendMessage(Text.translatable("message.pirkko.received"), true);
 
             user.incrementStat(Pirkko.PIRKKO_TRANSFER_STAT);
@@ -105,5 +113,14 @@ public class PirkkoItem extends BlockItem implements PolymerItem {
         }
 
         return ActionResult.CONSUME;
+    }
+
+    /**
+     * Transform the kind to a string used for loose equivalence checking.
+     * All colors will for example return the same
+     */
+    private static String kindTransform(PirkkoKind kind) {
+        if (kind == null) return "blank";
+        return kind.getPath().split("/", 2)[0];
     }
 }

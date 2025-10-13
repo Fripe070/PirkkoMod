@@ -107,8 +107,9 @@ public class PirkkoBlock extends Block implements BlockWithElementHolder, Polyme
         var side = ctx.getSide();
         BlockState blockState = this.getDefaultState();
         blockState = blockState.with(UP_DIRECTION, side);
-        blockState = blockState.with(KIND, PirkkoItem.getPirkkoKind(ctx.getStack()));
         blockState = blockState.with(WATERLOGGED, ctx.getWorld().getFluidState(ctx.getBlockPos()).getFluid() == Fluids.WATER);
+        @Nullable PirkkoKind kind = PirkkoItem.getPirkkoKind(ctx.getStack());
+        blockState = blockState.with(KIND, kind != null ? kind : PirkkoKind.BLANK);
 
         // Determine the rotation based on the side it is placed on and where the player is looking
         // Yes, this is horrible
