@@ -82,9 +82,13 @@ class RecipesProvider extends FabricRecipeProvider {
                 this.registerSpecialPirkko(itemLookup, PirkkoKind.PHOZ, specialGroup,
                     new Item[]{Items.LEATHER, Items.POISONOUS_POTATO});
                 this.registerSpecialPirkko(itemLookup, PirkkoKind.KONGLIG, specialGroup,
-                    new Item[]{Items.REDSTONE_TORCH, Items.GOLDEN_HELMET});
+                    new Item[]{Items.REDSTONE_TORCH});
                 this.registerSpecialPirkko(itemLookup, PirkkoKind.GHOST, specialGroup,
                     new Item[]{Items.PHANTOM_MEMBRANE});
+                this.registerSpecialPirkko(itemLookup, PirkkoKind.RED_MUSHROOM, specialGroup,
+                    new Item[]{Items.RED_MUSHROOM});
+                this.registerSpecialPirkko(itemLookup, PirkkoKind.BROWN_MUSHROOM, specialGroup,
+                    new Item[]{Items.BROWN_MUSHROOM});
             }
 
             private void registerDyeRecipe(RegistryWrapper.Impl<Item> itemLookup, PirkkoKind kind, @Nullable String group, DyeColor ...dyes) {

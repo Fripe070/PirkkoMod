@@ -40,22 +40,26 @@ public enum PirkkoKind implements StringIdentifiable {
 
     LASERVIOLETT("laserviolett", Rarity.RARE),
     CERISE("cerise", Rarity.RARE),
-    PHOZ("phoz", Rarity.RARE, true),
-    KONGLIG("konglig", Rarity.RARE, true),
-    GHOST("ghost", Rarity.RARE, true);
+    PHOZ("phoz", Rarity.RARE, true, false),
+    KONGLIG("konglig", Rarity.RARE, true, false),
+    GHOST("ghost", Rarity.RARE, true, false),
+    RED_MUSHROOM("red_mushroom", Rarity.RARE, true, true),
+    BROWN_MUSHROOM("brown_mushroom", Rarity.RARE, true, true);
 
     private final String assetPath;
     private final Rarity rarity;
     private final @Nullable SoundEvent soundEvent;
+    private final boolean usesCustomModel;
 
     PirkkoKind(String assetPath, Rarity rarity) {
-        this(assetPath, rarity, false);
+        this(assetPath, rarity, false, false);
     }
-    PirkkoKind(String assetPath, Rarity rarity, boolean useCustomSound) {
+    PirkkoKind(String assetPath, Rarity rarity, boolean useCustomSound, boolean useCustomModel) {
         this.assetPath = assetPath;
         this.rarity = rarity;
         var sound = SoundEvent.of(Pirkko.id("pirkko/" + this.getPath()));
         this.soundEvent = useCustomSound ? sound : null;
+        this.usesCustomModel = useCustomModel;
     }
 
     public String getPath() {
@@ -76,6 +80,9 @@ public enum PirkkoKind implements StringIdentifiable {
     }
     public SoundEvent getSound() {
         return Optional.ofNullable(soundEvent).orElse(Pirkko.DEFAULT_PIRKKO_SOUND);
+    }
+    public boolean usesCustomModel() {
+        return usesCustomModel;
     }
 
     @Override

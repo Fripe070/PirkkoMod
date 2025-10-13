@@ -14,6 +14,7 @@ import net.minecraft.client.data.TextureMap;
 import net.minecraft.client.render.item.model.ItemModel;
 import net.minecraft.client.render.item.model.SelectItemModel;
 import net.minecraft.client.render.item.property.select.CustomModelDataStringProperty;
+import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,19 +28,24 @@ public class ModelProvider extends FabricModelProvider {
     @Override
     public void generateItemModels(ItemModelGenerator itemModelGenerator) {
         var blankPirkkoId = Pirkko.id("item/pirkko/base");
-        var pirkkoModel = new Model(Optional.of(blankPirkkoId), Optional.empty(), TextureKey.TEXTURE);
+        var basePirkkoModel = new Model(Optional.of(blankPirkkoId), Optional.empty(), TextureKey.TEXTURE);
 
         List<SelectItemModel.SwitchCase<String>> pirkkoModels = new ArrayList<>();
         for (PirkkoKind kind : PirkkoKind.values()) {
             // Skip the default blank kind
             if (kind == PirkkoKind.BLANK) continue;
+            Identifier modelId;
+            if (kind.usesCustomModel()) {
+                modelId = Pirkko.id("item/pirkko/" + kind.getPath());
+            } else {
+                modelId = basePirkkoModel.upload(
+                    ModelIds.getItemSubModelId(Pirkko.PIRKKO_ITEM, "/" + kind.getPath()),
+                    TextureMap.texture(TextureMap.getSubId(Pirkko.PIRKKO_ITEM, "/" + kind.getPath())),
+                    itemModelGenerator.modelCollector
+                );
+            }
 
-            var subModel = pirkkoModel.upload(
-                ModelIds.getItemSubModelId(Pirkko.PIRKKO_ITEM, "/" + kind.getPath()),
-                TextureMap.texture(TextureMap.getSubId(Pirkko.PIRKKO_ITEM, "/" + kind.getPath())),
-                itemModelGenerator.modelCollector
-            );
-            ItemModel.Unbaked model = ItemModels.basic(subModel);
+            ItemModel.Unbaked model = ItemModels.basic(modelId);
             pirkkoModels.add(ItemModels.switchCase(kind.getId(), model));
         }
 
