@@ -47,7 +47,8 @@ public enum PirkkoKind implements StringIdentifiable {
     BROWN_MUSHROOM("brown_mushroom", Rarity.RARE, false, true),
     JUDGE("judge", Rarity.RARE, false, true),
     JACKO("jacko", Rarity.RARE, false, true),
-    WARDEN("warden", Rarity.RARE, false, true);
+    WARDEN("warden", Rarity.RARE, false, true),
+    SANTA("santa", Rarity.RARE, false, true);
 
     private final String assetPath;
     private final Rarity rarity;

@@ -95,6 +95,8 @@ class RecipesProvider extends FabricRecipeProvider {
                     new Item[]{Items.JACK_O_LANTERN});
                 this.registerSpecialPirkko(itemLookup, PirkkoKind.WARDEN, specialGroup,
                     new Item[]{Items.SCULK});
+                this.registerSpecialPirkko(itemLookup, PirkkoKind.SANTA, specialGroup,
+                    new Item[]{Items.SNOW_BLOCK, Items.COOKIE});
             }
 
             private void registerDyeRecipe(RegistryWrapper.Impl<Item> itemLookup, PirkkoKind kind, @Nullable String group, DyeColor ...dyes) {
