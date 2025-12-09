@@ -5,91 +5,92 @@ import io.github.fripe070.pirkko.criterion.PirkkoClickCriterion;
 import io.github.fripe070.pirkko.criterion.PirkkoTransferCriterion;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider;
-import net.minecraft.advancement.Advancement;
-import net.minecraft.advancement.AdvancementEntry;
-import net.minecraft.advancement.AdvancementFrame;
-import net.minecraft.advancement.criterion.*;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.AdvancementType;
+import net.minecraft.advancements.criterion.InventoryChangeTrigger;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class AdvancementProvider extends FabricAdvancementProvider {
-    protected AdvancementProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registryLookup) {
+    protected AdvancementProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registryLookup) {
         super(output, registryLookup);
     }
 
     @Override
-    public void generateAdvancement(RegistryWrapper.WrapperLookup wrapperLookup, Consumer<AdvancementEntry> consumer) {
-        AdvancementEntry root = Advancement.Builder.create().build(Identifier.ofVanilla("adventure/root"));
-        AdvancementEntry pirkkoRoot = Advancement.Builder.create()
+    public void generateAdvancement(HolderLookup.@NotNull Provider wrapperLookup, @NotNull Consumer<AdvancementHolder> consumer) {
+        AdvancementHolder root = Advancement.Builder.advancement().build(Identifier.withDefaultNamespace("adventure/root"));
+        AdvancementHolder pirkkoRoot = Advancement.Builder.advancement()
             .parent(root)
             .display(
                 Pirkko.PIRKKO_ITEM,
-                Text.translatable("advancements.pirkko.root.title"),
-                Text.translatable("advancements.pirkko.root.description"),
-                Identifier.ofVanilla("textures/gui/advancements/block/red_terracotta.png"),
-                AdvancementFrame.TASK,
+                Component.translatable("advancements.pirkko.root.title"),
+                Component.translatable("advancements.pirkko.root.description"),
+                Identifier.withDefaultNamespace("textures/gui/advancements/block/red_terracotta.png"),
+                AdvancementType.TASK,
                 true,
                 true,
                 false
             )
-            .criterion("obtained_pirkko", InventoryChangedCriterion.Conditions.items(Pirkko.PIRKKO_ITEM))
-            .build(consumer, Pirkko.id("root").toString());
+            .addCriterion("obtained_pirkko", InventoryChangeTrigger.TriggerInstance.hasItems(Pirkko.PIRKKO_ITEM))
+            .save(consumer, Pirkko.id("root").toString());
 
         this.registerClickGoals(consumer, pirkkoRoot);
         this.registerTransferGoals(consumer, pirkkoRoot);
     }
-    private void registerClickGoals(Consumer<AdvancementEntry> consumer, AdvancementEntry root) {
+    private void registerClickGoals(Consumer<AdvancementHolder> consumer, AdvancementHolder root) {
         int[] clickGoals = {1, 100, 1_000, 5_000, 10_000, 100_000, 1_000_000};
-        AdvancementEntry pirkkoClickParent = root;
+        AdvancementHolder pirkkoClickParent = root;
         for (int goal : clickGoals) {
-            AdvancementFrame frame = AdvancementFrame.TASK;
-            if (goal >= 1_000) frame = AdvancementFrame.GOAL;
-            if (goal >= 100_000) frame = AdvancementFrame.CHALLENGE;
+            AdvancementType frame = AdvancementType.TASK;
+            if (goal >= 1_000) frame = AdvancementType.GOAL;
+            if (goal >= 100_000) frame = AdvancementType.CHALLENGE;
 
-            pirkkoClickParent = Advancement.Builder.create()
+            pirkkoClickParent = Advancement.Builder.advancement()
                 .parent(pirkkoClickParent)
                 .display(
                     Pirkko.PIRKKO_ITEM,
-                    Text.translatable("advancements.pirkko.click_" + goal + "_pirkko.title"),
-                    Text.translatable("advancements.pirkko.click_" + goal + "_pirkko.description"),
-                    Identifier.ofVanilla("textures/gui/advancements/block/red_terracotta.png"),
+                    Component.translatable("advancements.pirkko.click_" + goal + "_pirkko.title"),
+                    Component.translatable("advancements.pirkko.click_" + goal + "_pirkko.description"),
+                    Identifier.withDefaultNamespace("textures/gui/advancements/block/red_terracotta.png"),
                     frame,
                     true,
                     true,
                     goal > 100
                 )
-                .criterion("clicked_" + goal + "_pirkko", Pirkko.CLICK_PIRKKO.create(
+                .addCriterion("clicked_" + goal + "_pirkko", Pirkko.CLICK_PIRKKO.createCriterion(
                     new PirkkoClickCriterion.Conditions(Optional.empty(), goal)))
-                .build(consumer, Pirkko.id("click_" + goal + "_pirkko").toString());
+                .save(consumer, Pirkko.id("click_" + goal + "_pirkko").toString());
         }
     }
-    private void registerTransferGoals(Consumer<AdvancementEntry> consumer, AdvancementEntry root) {
+    private void registerTransferGoals(Consumer<AdvancementHolder> consumer, AdvancementHolder root) {
         int[] transferGoals = {1, 5, 10, 20, 50};
-        AdvancementEntry pirkkoTransferParent = root;
+        AdvancementHolder pirkkoTransferParent = root;
         for (int goal : transferGoals) {
-            AdvancementFrame frame = AdvancementFrame.TASK;
-            if (goal >= 10) frame = AdvancementFrame.GOAL;
+            AdvancementType frame = AdvancementType.TASK;
+            if (goal >= 10) frame = AdvancementType.GOAL;
 
-            pirkkoTransferParent = Advancement.Builder.create()
+            pirkkoTransferParent = Advancement.Builder.advancement()
                 .parent(pirkkoTransferParent)
                 .display(
                     Pirkko.PIRKKO_ITEM,
-                    Text.translatable("advancements.pirkko.transfer_" + goal + "_pirkko.title"),
-                    Text.translatable("advancements.pirkko.transfer_" + goal + "_pirkko.description"),
-                    Identifier.ofVanilla("textures/gui/advancements/block/red_terracotta.png"),
+                    Component.translatable("advancements.pirkko.transfer_" + goal + "_pirkko.title"),
+                    Component.translatable("advancements.pirkko.transfer_" + goal + "_pirkko.description"),
+                    Identifier.withDefaultNamespace("textures/gui/advancements/block/red_terracotta.png"),
                     frame,
                     true,
                     goal > 5,
                     false
                 )
-                .criterion("transferred_" + goal + "_pirkko", Pirkko.TRANSFER_PIRKKO.create(
+                .addCriterion("transferred_" + goal + "_pirkko", Pirkko.TRANSFER_PIRKKO.createCriterion(
                     new PirkkoTransferCriterion.Conditions(Optional.empty(), goal)))
-                .build(consumer, Pirkko.id("transferred_" + goal + "_pirkko").toString());
+                .save(consumer, Pirkko.id("transferred_" + goal + "_pirkko").toString());
         }
     }
 }

@@ -1,14 +1,15 @@
 package io.github.fripe070.pirkko;
 
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.Rarity;
-import net.minecraft.util.StringIdentifiable;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.util.StringRepresentable;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public enum PirkkoKind implements StringIdentifiable {
+public enum PirkkoKind implements StringRepresentable {
     BLANK("blank", Rarity.UNCOMMON),
 
     COLOR_WHITE("color/white", Rarity.UNCOMMON),
@@ -61,7 +62,7 @@ public enum PirkkoKind implements StringIdentifiable {
     PirkkoKind(String assetPath, Rarity rarity, boolean useCustomSound, boolean useCustomModel) {
         this.assetPath = assetPath;
         this.rarity = rarity;
-        var sound = SoundEvent.of(Pirkko.id("pirkko/" + this.getPath()));
+        var sound = SoundEvent.createVariableRangeEvent(Pirkko.id("pirkko/" + this.getPath()));
         this.soundEvent = useCustomSound ? sound : null;
         this.usesCustomModel = useCustomModel;
     }
@@ -90,7 +91,7 @@ public enum PirkkoKind implements StringIdentifiable {
     }
 
     @Override
-    public String asString() {
+    public @NotNull String getSerializedName() {
         return this.getId();
     }
 

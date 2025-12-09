@@ -17,8 +17,6 @@
     "fabric-datagen": ["io.github.fripe070.pirkko.datagen.DataGen"]
   },
 
-  "mixins": ["pirkko.mixins.json"],
-
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric": "*",

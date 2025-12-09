@@ -11,40 +11,41 @@ import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import io.github.fripe070.pirkko.Pirkko;
 import io.github.fripe070.pirkko.PirkkoKind;
 import io.github.fripe070.pirkko.item.PirkkoItem;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Waterloggable;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.ItemDisplayContext;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.loot.context.LootWorldContext;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.stat.Stats;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.IntProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.RotationPropertyHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
-import net.minecraft.world.WorldView;
-import net.minecraft.world.block.WireOrientation;
-import net.minecraft.world.event.GameEvent;
-import net.minecraft.world.tick.ScheduledTickView;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.stats.Stats;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.properties.RotationSegment;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.redstone.Orientation;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.ScheduledTickAccess;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -54,140 +55,140 @@ import java.util.List;
 import java.util.Locale;
 
 
-public class PirkkoBlock extends Block implements BlockWithElementHolder, PolymerTexturedBlock, Waterloggable {
-    public static final MapCodec<PirkkoBlock> CODEC = createCodec(PirkkoBlock::new);
+public class PirkkoBlock extends Block implements BlockWithElementHolder, PolymerTexturedBlock, SimpleWaterloggedBlock {
+    public static final MapCodec<PirkkoBlock> CODEC = simpleCodec(PirkkoBlock::new);
 
-    public static final IntProperty ROTATION = Properties.ROTATION;
-    public static final EnumProperty<Direction> UP_DIRECTION = Properties.FACING;
-    public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
-    public static final BooleanProperty POWERED = BooleanProperty.of("powered");
-    public static final EnumProperty<PirkkoKind> KIND = EnumProperty.of("kind", PirkkoKind.class);
+    public static final IntegerProperty ROTATION = BlockStateProperties.ROTATION_16;
+    public static final EnumProperty<@NotNull Direction> UP_DIRECTION = BlockStateProperties.FACING;
+    public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
+    public static final BooleanProperty POWERED = BooleanProperty.create("powered");
+    public static final EnumProperty<@NotNull PirkkoKind> KIND = EnumProperty.create("kind", PirkkoKind.class);
 
     protected static final int SQUISH_TICKS = 4;
-    public static final IntProperty SQUISH_TICK = IntProperty.of("squish_tick", 0, SQUISH_TICKS);
+    public static final IntegerProperty SQUISH_TICK = IntegerProperty.create("squish_tick", 0, SQUISH_TICKS);
 
-    protected final Random random;
+    protected final RandomSource random;
 
     @Override
-    public MapCodec<PirkkoBlock> getCodec() {
+    public @NotNull MapCodec<PirkkoBlock> codec() {
         return CODEC;
     }
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<@NotNull Block, @NotNull BlockState> builder) {
         builder.add(ROTATION, UP_DIRECTION, WATERLOGGED, POWERED, KIND, SQUISH_TICK);
     }
 
-    public PirkkoBlock(AbstractBlock.Settings settings) {
+    public PirkkoBlock(BlockBehaviour.Properties settings) {
         super(settings);
-        this.random = Random.create();
-        this.setDefaultState(this.stateManager.getDefaultState()
-            .with(ROTATION, RotationPropertyHelper.fromDirection(Direction.NORTH))
-            .with(UP_DIRECTION, Direction.UP)
-            .with(WATERLOGGED, false)
-            .with(POWERED, false)
-            .with(KIND, PirkkoKind.BLANK)
-            .with(SQUISH_TICK, 0)
+        this.random = RandomSource.create();
+        this.registerDefaultState(this.stateDefinition.any()
+            .setValue(ROTATION, RotationSegment.convertToSegment(Direction.NORTH))
+            .setValue(UP_DIRECTION, Direction.UP)
+            .setValue(WATERLOGGED, false)
+            .setValue(POWERED, false)
+            .setValue(KIND, PirkkoKind.BLANK)
+            .setValue(SQUISH_TICK, 0)
         );
     }
 
     protected ItemStack getItemStack(BlockState blockState) {
-        return PirkkoItem.getStack(blockState.get(KIND));
+        return PirkkoItem.getStack(blockState.getValue(KIND));
     }
     @Override
-    protected ItemStack getPickStack(WorldView world, BlockPos pos, BlockState state, boolean includeData) {
+    protected @NotNull ItemStack getCloneItemStack(@NotNull LevelReader world, @NotNull BlockPos pos, @NotNull BlockState state, boolean includeData) {
         return this.getItemStack(state);
     }
     @Override
-    protected List<ItemStack> getDroppedStacks(BlockState state, LootWorldContext.Builder builder) {
+    protected @NotNull List<ItemStack> getDrops(@NotNull BlockState state, LootParams.@NotNull Builder builder) {
         return List.of(getItemStack(state));
     }
 
     @Nullable
-    public BlockState getPlacementState(ItemPlacementContext ctx) {
-        var side = ctx.getSide();
-        BlockState blockState = this.getDefaultState();
-        blockState = blockState.with(UP_DIRECTION, side);
-        blockState = blockState.with(WATERLOGGED, ctx.getWorld().getFluidState(ctx.getBlockPos()).getFluid() == Fluids.WATER);
-        @Nullable PirkkoKind kind = PirkkoItem.getPirkkoKind(ctx.getStack());
-        blockState = blockState.with(KIND, kind != null ? kind : PirkkoKind.BLANK);
+    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        var side = ctx.getClickedFace();
+        BlockState blockState = this.defaultBlockState();
+        blockState = blockState.setValue(UP_DIRECTION, side);
+        blockState = blockState.setValue(WATERLOGGED, ctx.getLevel().getFluidState(ctx.getClickedPos()).getType() == Fluids.WATER);
+        @Nullable PirkkoKind kind = PirkkoItem.getPirkkoKind(ctx.getItemInHand());
+        blockState = blockState.setValue(KIND, kind != null ? kind : PirkkoKind.BLANK);
 
         // Determine the rotation based on the side it is placed on and where the player is looking
         // Yes, this is horrible
         if (side == Direction.UP || side == Direction.DOWN) {
             // Display entity will be rotated such that the horizontal rotation inverts when upside down, hence we invert
-            var horizontalAngle = RotationPropertyHelper.fromYaw(side == Direction.DOWN
-                ? ctx.getPlayerYaw()
-                : -ctx.getPlayerYaw());
-            blockState = blockState.with(ROTATION, horizontalAngle);
+            var horizontalAngle = RotationSegment.convertToSegment(side == Direction.DOWN
+                ? ctx.getRotation()
+                : -ctx.getRotation());
+            blockState = blockState.setValue(ROTATION, horizontalAngle);
         } else {
-            @Nullable PlayerEntity player = ctx.getPlayer();
-            Vec3d playerLook = player != null ? player.getRotationVector() : new Vec3d(0, -1, 0);
+            @Nullable Player player = ctx.getPlayer();
+            Vec3 playerLook = player != null ? player.getLookAngle() : new Vec3(0, -1, 0);
 
-            Vector3f perpToSide = side.getUnitVector().cross(Direction.DOWN.getUnitVector());
-            double angle = Math.atan2(playerLook.getY(), perpToSide.dot(playerLook.toVector3f()));
+            Vector3f perpToSide = side.step().cross(Direction.DOWN.step());
+            double angle = Math.atan2(playerLook.y(), perpToSide.dot(playerLook.toVector3f()));
 
-            blockState = blockState.with(ROTATION, RotationPropertyHelper.fromYaw((float) Math.toDegrees(angle) + 90));
+            blockState = blockState.setValue(ROTATION, RotationSegment.convertToSegment((float) Math.toDegrees(angle) + 90));
         }
 
-        if (!blockState.canPlaceAt(ctx.getWorld(), ctx.getBlockPos()))
+        if (!blockState.canSurvive(ctx.getLevel(), ctx.getClickedPos()))
             return null;
         return blockState;
     }
 
     @Override
-    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        player.incrementStat(Pirkko.PIRKKO_CLICK_STAT);
-        Pirkko.CLICK_PIRKKO.trigger((ServerPlayerEntity) player,
-            ((ServerPlayerEntity) player).getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(Pirkko.PIRKKO_CLICK_STAT)));
+    protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, Player player, @NotNull BlockHitResult hit) {
+        player.awardStat(Pirkko.PIRKKO_CLICK_STAT);
+        Pirkko.CLICK_PIRKKO.trigger((ServerPlayer) player,
+            ((ServerPlayer) player).getStats().getValue(Stats.CUSTOM.get(Pirkko.PIRKKO_CLICK_STAT)));
 
         return squish(state, world, pos);
     }
 
-    protected ActionResult squish(BlockState state, World world, BlockPos pos) {
+    protected InteractionResult squish(BlockState state, Level world, BlockPos pos) {
         this.playPirkko(world, pos, state);
-        world.setBlockState(pos, state.with(SQUISH_TICK, SQUISH_TICKS));
-        world.scheduleBlockTick(pos, this, 1);
-        world.emitGameEvent(null, GameEvent.NOTE_BLOCK_PLAY, pos);
-        return ActionResult.SUCCESS;
+        world.setBlockAndUpdate(pos, state.setValue(SQUISH_TICK, SQUISH_TICKS));
+        world.scheduleTick(pos, this, 1);
+        world.gameEvent(null, GameEvent.NOTE_BLOCK_PLAY, pos);
+        return InteractionResult.SUCCESS;
     }
 
     protected int getSquishTicks(BlockState state) {
-        return state.get(SQUISH_TICK);
+        return state.getValue(SQUISH_TICK);
     }
     protected boolean isSquishing(BlockState state) {
         var squishTick = getSquishTicks(state);
         return squishTick > 0;
     }
 
-    public void playPirkko(World world, BlockPos pos, BlockState state) {
+    public void playPirkko(Level world, BlockPos pos, BlockState state) {
         this.playPirkko(world, pos, state, 1.1f + (this.random.nextFloat() - 0.5f) * 0.3f);
     }
-    public void playPirkko(World world, BlockPos pos, BlockState state, float pitch) {
-        world.playSound(null, pos, state.get(KIND).getSound(), SoundCategory.BLOCKS, 0.8f, pitch);
+    public void playPirkko(Level world, BlockPos pos, BlockState state, float pitch) {
+        world.playSound(null, pos, state.getValue(KIND).getSound(), SoundSource.BLOCKS, 0.8f, pitch);
     }
 
-    protected BlockState getFloorBlock(BlockState state, World world, BlockPos pos) {
-        var direction = state.get(UP_DIRECTION).getOpposite();
-        var newPos = pos.add(direction.getVector());
+    protected BlockState getFloorBlock(BlockState state, Level world, BlockPos pos) {
+        var direction = state.getValue(UP_DIRECTION).getOpposite();
+        var newPos = pos.offset(direction.getUnitVec3i());
         return world.getBlockState(newPos);
     }
 
     @Override
-    protected void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-        super.scheduledTick(state, world, pos, random);
+    protected void tick(@NotNull BlockState state, @NotNull ServerLevel world, @NotNull BlockPos pos, @NotNull RandomSource random) {
+        super.tick(state, world, pos, random);
         if (isSquishing(state)) {
-            world.setBlockState(pos, state.with(SQUISH_TICK, state.get(SQUISH_TICK) - 1));
-            world.scheduleBlockTick(pos, this, 1);
+            world.setBlockAndUpdate(pos, state.setValue(SQUISH_TICK, state.getValue(SQUISH_TICK) - 1));
+            world.scheduleTick(pos, this, 1);
         }
     }
 
     @Override
-    protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, @Nullable WireOrientation wireOrientation, boolean notify) {
-        super.neighborUpdate(state, world, pos, sourceBlock, wireOrientation, notify);
-        boolean hasPower = world.isReceivingRedstonePower(pos);
-        if (hasPower != state.get(POWERED)) {
-            BlockState poweredState = state.with(POWERED, hasPower);
-            world.setBlockState(pos, poweredState);
+    protected void neighborChanged(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, @NotNull Block sourceBlock, @Nullable Orientation wireOrientation, boolean notify) {
+        super.neighborChanged(state, world, pos, sourceBlock, wireOrientation, notify);
+        boolean hasPower = world.hasNeighborSignal(pos);
+        if (hasPower != state.getValue(POWERED)) {
+            BlockState poweredState = state.setValue(POWERED, hasPower);
+            world.setBlockAndUpdate(pos, poweredState);
             if (hasPower) {
                 this.squish(poweredState, world, pos);
             }
@@ -195,62 +196,62 @@ public class PirkkoBlock extends Block implements BlockWithElementHolder, Polyme
     }
 
     @Override
-    protected boolean hasComparatorOutput(BlockState state) {
-        super.hasComparatorOutput(state);
+    protected boolean hasAnalogOutputSignal(@NotNull BlockState state) {
+        super.hasAnalogOutputSignal(state);
         return true;
     }
 
     @Override
-    protected int getComparatorOutput(BlockState state, World world, BlockPos pos, Direction direction) {
+    protected int getAnalogOutputSignal(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, @NotNull Direction direction) {
         return Math.max(0, Math.min(15, getSquishTicks(state) * 15 / (SQUISH_TICKS - 1)));
     }
 
     @Override
-    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
-        super.onPlaced(world, pos, state, placer, itemStack);
+    public void setPlacedBy(@NotNull Level world, @NotNull BlockPos pos, @NotNull BlockState state, @Nullable LivingEntity placer, @NotNull ItemStack itemStack) {
+        super.setPlacedBy(world, pos, state, placer, itemStack);
         this.squish(state, world, pos);
     }
 
     @Override
-    public void onBroken(WorldAccess world, BlockPos pos, BlockState state) {
-        super.onBroken(world, pos, state);
-        this.playPirkko((World) world, pos, state);
+    public void destroy(@NotNull LevelAccessor world, @NotNull BlockPos pos, @NotNull BlockState state) {
+        super.destroy(world, pos, state);
+        this.playPirkko((Level) world, pos, state);
     }
 
     @Override
-    protected boolean canPlaceAt(BlockState state, WorldView world, BlockPos pos) {
+    protected boolean canSurvive(@NotNull BlockState state, @NotNull LevelReader world, @NotNull BlockPos pos) {
         return true;
     }
 
     @Override
-    public FluidState getFluidState(BlockState state) {
-        return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
+    public @NotNull FluidState getFluidState(BlockState state) {
+        return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
     }
 
     @Override
-    protected BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
-        if (state.get(WATERLOGGED)) {
-            tickView.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
+    protected @NotNull BlockState updateShape(BlockState state, @NotNull LevelReader world, @NotNull ScheduledTickAccess tickView, @NotNull BlockPos pos, @NotNull Direction direction, @NotNull BlockPos neighborPos, @NotNull BlockState neighborState, @NotNull RandomSource random) {
+        if (state.getValue(WATERLOGGED)) {
+            tickView.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
         }
-        return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
+        return super.updateShape(state, world, tickView, pos, direction, neighborPos, neighborState, random);
     }
 
     @Override
     public BlockState getPolymerBlockState(BlockState state, PacketContext context) {
-        return PolymerBlockResourceUtils.requestEmpty(BlockModelType.valueOf((switch (state.get(UP_DIRECTION)) {
+        return PolymerBlockResourceUtils.requestEmpty(BlockModelType.valueOf((switch (state.getValue(UP_DIRECTION)) {
             case Direction.UP -> "BOTTOM_TRAPDOOR";
             case Direction.DOWN -> "TOP_TRAPDOOR";
-            default -> state.get(UP_DIRECTION).asString().toUpperCase(Locale.ROOT) + "_TRAPDOOR";
-        }) + (state.get(WATERLOGGED) ? "_WATERLOGGED" : "")));
+            default -> state.getValue(UP_DIRECTION).getSerializedName().toUpperCase(Locale.ROOT) + "_TRAPDOOR";
+        }) + (state.getValue(WATERLOGGED) ? "_WATERLOGGED" : "")));
     }
 
     @Override
-    public @Nullable ElementHolder createElementHolder(ServerWorld world, BlockPos pos, BlockState initialBlockState) {
+    public @Nullable ElementHolder createElementHolder(ServerLevel world, BlockPos pos, BlockState initialBlockState) {
         return new PirkkoHolder(initialBlockState, this.getItemStack(initialBlockState));
     }
 
     @Override
-    public boolean tickElementHolder(ServerWorld world, BlockPos pos, BlockState initialBlockState) {
+    public boolean tickElementHolder(ServerLevel world, BlockPos pos, BlockState initialBlockState) {
         return true;
     }
 
@@ -270,16 +271,16 @@ public class PirkkoBlock extends Block implements BlockWithElementHolder, Polyme
 
         public Matrix4f computeTransform(BlockState blockState) {
             var transform = new Matrix4f();
-            var facing = blockState.get(UP_DIRECTION);
+            var facing = blockState.getValue(UP_DIRECTION);
             if (facing == Direction.DOWN) {
                 transform.rotateY((float) Math.toRadians(180));
                 transform.rotateX((float) Math.toRadians(180));
             } else if (facing != Direction.UP) {
-                var rotation = Direction.getHorizontalDegreesOrThrow(facing);
+                var rotation = Direction.getYRot(facing);
                 transform.rotateY((float) Math.toRadians(-rotation));
                 transform.rotateX((float) Math.toRadians(90));
             }
-            transform.rotateY((float) Math.toRadians(RotationPropertyHelper.toDegrees(blockState.get(ROTATION))));
+            transform.rotateY((float) Math.toRadians(RotationSegment.convertToDegrees(blockState.getValue(ROTATION))));
             return transform;
         }
 
@@ -287,7 +288,7 @@ public class PirkkoBlock extends Block implements BlockWithElementHolder, Polyme
         protected void onTick() {
             var attachment = this.getAttachment();
             if (attachment == null) throw new IllegalStateException("Attachment is null");
-            var squishTick = ((BlockBoundAttachment) attachment).getBlockState().get(SQUISH_TICK);
+            int squishTick = ((BlockBoundAttachment) attachment).getBlockState().getValue(SQUISH_TICK);
 
             if (squishTick > 0) {
                 float squishFactor = squishTick / (float) SQUISH_TICKS;
